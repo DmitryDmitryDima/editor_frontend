@@ -28,6 +28,9 @@ export default function javaBasicCompletions(context) {
 
      */
 
+
+    // commit test
+
     const types = [
         "String", "Integer", "Double", "Float", "Boolean", "Object",
         "List", "ArrayList", "Map", "HashMap", "Set", "HashSet"
