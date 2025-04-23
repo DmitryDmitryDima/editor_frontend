@@ -14,7 +14,7 @@ export default async function javaDotCompletion (context) {
     console.log(before.text);
 
 
-    const way = "/api/editor/dotSuggest/";
+    const way = "/api/editor/suggest/dot";
 
     /*
     current api request json
@@ -36,7 +36,7 @@ export default async function javaDotCompletion (context) {
             code: context.state.doc.toString(),
             object: object,
             line: context.state.doc.lineAt(context.pos).number,
-            absolute:context.pos
+            position:context.pos
 
         })
     });
@@ -47,7 +47,7 @@ export default async function javaDotCompletion (context) {
 
     return {
         from: context.pos,
-        options: completions.suggestions.map(c => ({label: c+"()", type: "method"}))
+        options: completions.methods.map(c => ({label: c+"()", type: "method"}))
     };
 
 

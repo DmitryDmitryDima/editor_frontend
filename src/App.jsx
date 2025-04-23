@@ -47,9 +47,15 @@ function App() {
 
 
             // запрашивем бэк
-            const response = await fetch("/api/editor/run/", {
-                method: "GET",
+            const response = await fetch("/api/editor/run", {
+                method: "POST",
                 headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+
+                    code: code,
+
+
+                })
             })
             if (!response.ok) {
                 throw new Error(response.statusText)
@@ -61,7 +67,7 @@ function App() {
 
             setOutput(prev => prev +
                 "> Output:\n" +
-                (result.answer || "No output") + "\n\n" +
+                (result.message || "No output") + "\n\n" +
                 (result.error ? "> Errors:\n" + result.error + "\n" : "") +
                 "> Process finished.\n\n"
             );
