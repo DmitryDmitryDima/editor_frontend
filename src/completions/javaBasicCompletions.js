@@ -2,7 +2,9 @@
 
 
 
-
+/*
+данная функция также применима и для запроса обычных слов
+ */
 export default function javaBasicCompletions(context) {
     let word = context.matchBefore(/\w*/);
     console.log(word);

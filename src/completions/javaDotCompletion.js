@@ -1,8 +1,18 @@
 
 
-export default async function javaDotCompletion (context) {
+export default async function  javaDotCompletion (context) {
 
-    const before = context.matchBefore(/[\w.]*$/);
+
+
+
+    // извлекаем выражение, чтобы послать его на анализ в бэк (с точкой!)
+    const expression = context.state.doc.lineAt(context.pos).text;
+
+    // todo помимо выражения, на бэк посылается позиция и контекст (весь код)
+
+
+
+    const before = context.matchBefore(/[\w.]*$/); // часть, записанная после последней точки
     if (!before || before.text.indexOf('.') < 0) return null;
 
     const object = before.text.split('.')[0];
