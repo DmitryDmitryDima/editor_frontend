@@ -3,37 +3,30 @@
 export default async function  javaDotCompletion (context) {
 
 
+    const before = context.matchBefore(/[\w.]*$/); // часть, записанная после последней точки
+    if (!before || before.text.indexOf('.') < 0) return null;
 
+    // извлекаем выражение, чтобы послать его на анализ в бэк
+    let expression = context.state.doc.lineAt(context.pos).text;
+    expression = expression.substring(0, expression.length-1); // убираем ненужную точку
 
-    // извлекаем выражение, чтобы послать его на анализ в бэк (с точкой!)
-    const expression = context.state.doc.lineAt(context.pos).text;
 
     // todo помимо выражения, на бэк посылается позиция и контекст (весь код)
 
 
 
-    const before = context.matchBefore(/[\w.]*$/); // часть, записанная после последней точки
-    if (!before || before.text.indexOf('.') < 0) return null;
 
-    const object = before.text.split('.')[0];
-
-
-    console.log("object...")
-    console.log(object);
-    console.log("before...")
-    console.log(before.text);
 
 
     const way = "/api/editor/suggest/dot";
 
-    /*
-    current api request json
-    {
-    code:
-    object:
-    absolute}
-     */
+    console.log(expression + ' expression');
 
+
+
+
+
+    const line = context.state.doc.lineAt(context.pos);
 
 
 
@@ -44,9 +37,10 @@ export default async function  javaDotCompletion (context) {
         body: JSON.stringify({
 
             code: context.state.doc.toString(),
-            object: object,
-            line: context.state.doc.lineAt(context.pos).number,
-            position:context.pos
+            expression:expression,
+            position:context.pos,
+            line:line.number,
+            column:context.pos - line.from
 
         })
     });
