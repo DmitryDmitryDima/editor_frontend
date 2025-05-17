@@ -35,6 +35,36 @@ function App() {
     const [output, setOutput] = useState("");
 
 
+    // функция, срабатывающая при запросе импортов
+    const importRequest = async () => {
+        // запрашивем бэк
+        const response = await fetch("/api/editor/suggest/import", {
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+
+                code: code,
+
+
+            })
+        })
+
+        if (!response.ok) {
+            throw new Error(response.statusText)
+
+        }
+        const result = await response.json();
+        console.log(result);
+        setCode(prevState => {
+            let portion = "";
+            result.imports.forEach((item) => {
+                portion+=item+"\n";
+            })
+            return portion+prevState;
+        })
+    }
+
+
     // функция, срабатывающая при запуске кода
     const runCode = async () => {
         try {
@@ -52,6 +82,7 @@ function App() {
                 body: JSON.stringify({
 
                     code: code,
+                    screenWidth: window.innerWidth
 
 
                 })
@@ -107,8 +138,8 @@ function App() {
             <div className="toolbar">
                 <button className="panelbutton" onClick={runCode}>Run</button>
                 <button className="panelbutton">Save</button>
-                <button className="panelbutton">File Tree</button>
-                <button className="panelbutton">Profile</button>
+                <button className="panelbutton" onClick={importRequest}>Import</button>
+                <button className="panelbutton">In Future</button>
             </div>
 
             <div className = 'editorwrapper'>

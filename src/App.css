@@ -62,8 +62,9 @@ html, body, #root {
   flex-direction: column;
   /* параметры переноса строк*/
   white-space: pre-wrap; /* Сохраняет пробелы, но переносит */
-  word-break: break-word; /* Разрешает перенос длинных слов */
-  overflow-wrap: anywhere; /* Экстренный перенос */
+  word-break: break-all; /* Разрешает перенос длинных слов */
+  overflow-wrap: anywhere; /*экстренный перенос*/
+
 
 
 
