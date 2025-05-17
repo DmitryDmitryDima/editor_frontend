@@ -6,6 +6,7 @@ import { autocompletion } from "@codemirror/autocomplete";
 import javaBasicCompletions from "./completions/javaBasicCompletions.js";
 
 import javaDotCompletion from "./completions/javaDotCompletion.js";
+import {ghostTextExtension} from "./completions/ghostArgs.js";
 
 
 
@@ -24,11 +25,9 @@ function App() {
     // хук для создания и изменения state редактора
     const [code, setCode] = useState(
         `public class Main {
-    public static void main(String[] args) {
-       System.out.println("Hello, Java!");
-       // Start coding here...
-       
-    }
+  public static void main(String[] args) {
+    System.out.println("Hello, Java!");
+  }
 }`
     )
 
@@ -120,12 +119,15 @@ function App() {
                         value={code}
                         extensions={[java(),
                             EditorView.lineWrapping,
+                            ghostTextExtension,
+
 
                             // ТУТ ВСТАВЛЯЕМ ПАРАМЕТРЫ ПОДСКАЗОК - ИЗ ОТДЕЛЬНЫХ ФАЙЛОВ
                             // ФУНКЦИЙ ПОДСКАЗОК МОЖЕТ СКОЛЬКО УГОДНО
                             autocompletion({override:[javaBasicCompletions,
                                     //snippetCompletions,
                                     javaDotCompletion],
+
                             activateOnTyping: true,
                                 defaultKeymap:true
 

@@ -11,7 +11,13 @@ export default async function  javaDotCompletion (context) {
     expression = expression.substring(0, expression.length-1); // убираем ненужную точку
 
 
-    // todo помимо выражения, на бэк посылается позиция и контекст (весь код)
+
+
+    const lastDotPos = before.text.lastIndexOf('.');
+    const prefix = before.text.substring(lastDotPos + 1); // то, что введено после точки
+    const from = before.from + lastDotPos + 1; // позиция начала ввода после точки
+
+
 
 
 
@@ -50,8 +56,8 @@ export default async function  javaDotCompletion (context) {
 
 
     return {
-        from: context.pos,
-        options: completions.methods.map(c => ({label: c+"()", type: "method"}))
+        from: from, //context.pos,
+        options: completions.methods.map(c => ({label: c, type: "method", apply:c+"()"}))
     };
 
 

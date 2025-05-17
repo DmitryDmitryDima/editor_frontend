@@ -60,6 +60,13 @@ html, body, #root {
   border-top: 2px solid #007acc;
   display: flex;
   flex-direction: column;
+  /* параметры переноса строк*/
+  white-space: pre-wrap; /* Сохраняет пробелы, но переносит */
+  word-break: break-word; /* Разрешает перенос длинных слов */
+  overflow-wrap: anywhere; /* Экстренный перенос */
+
+
+
 }
 
 .output-header {
