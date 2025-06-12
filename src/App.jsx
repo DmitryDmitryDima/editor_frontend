@@ -139,7 +139,7 @@ function App() {
                 <button className="panelbutton" onClick={runCode}>Run</button>
                 <button className="panelbutton">Save</button>
                 <button className="panelbutton" onClick={importRequest}>Import</button>
-                <button className="panelbutton">In Future</button>
+                <button className="panelbutton">Project</button>
             </div>
 
             <div className = 'editorwrapper'>

@@ -26,7 +26,7 @@ export default async function  javaDotCompletion (context) {
 
     const way = "/api/editor/suggest/dot";
 
-    console.log(expression + ' expression');
+    //console.log(expression + ' expression');
 
 
 
@@ -54,10 +54,14 @@ export default async function  javaDotCompletion (context) {
     const completions = await response.json();
     console.log(completions);
 
+    let methods = completions.methods.map(c => ({label: c, type: "method", apply:c+"()"}));
+    let fields = completions.fields.map(c => ({label: c, type: "variable", apply:c}));
+
+
 
     return {
         from: from, //context.pos,
-        options: completions.methods.map(c => ({label: c, type: "method", apply:c+"()"}))
+        options: methods.concat(fields)
     };
 
 
