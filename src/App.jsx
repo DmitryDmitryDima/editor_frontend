@@ -11,8 +11,8 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<MainPage />} />
-                    <Route path="/:user_id" element={<UserPage />} />
-                    <Route path="/:user_id/:project_name/:file_name" element={<File />} />
+                    <Route path="/:user_name" element={<UserPage />} />
+                    <Route path="/:user_name/:project_name/:file_name" element={<File />} />
 
 
                 </Routes>

@@ -11,7 +11,7 @@ import {useParams} from "react-router-dom";
 
 function File(){
 
-    const {user_id, project_name, file_name} = useParams();
+    const {user_name, project_name, file_name} = useParams();
 
 
     // хук для создания и изменения state редактора
