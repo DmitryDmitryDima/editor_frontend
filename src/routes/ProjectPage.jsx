@@ -1,18 +1,19 @@
-import {Link, useParams} from "react-router-dom";
-import React, { useState, useEffect } from 'react';
+import {useParams} from "react-router-dom";
+import React, {useEffect, useState} from "react";
 
-function UserPage(){
+
+function ProjectPage(){
 
     const {user_name} = useParams();
+    const {project_name} = useParams();
 
-    // data - то, что предзагружаем из сервера
     const [data, setData] = useState(null)
 
     const [error, setError] = useState(null)
 
     const [loading, setLoading] = useState(true);
 
-    const apiPath = "/api/users/"+user_name;
+    const apiPath = "/api/users/"+user_name+"/"+project_name;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,36 +43,18 @@ function UserPage(){
         return <p>Error: {error.message}</p>;
     }
 
-
-    console.log(data);
-
-
-
-    return <div>
-        <h1>User {user_name}</h1>
-
-
-        {
-
-            data.projects.map(project => {
+    // data manipulation
 
 
 
-                return (
+    return(
+        <div>
 
-                    <div key={project.id}>
-                        <Link to={"/"+user_name+"/"+project.name} style={{color: 'black',
-                            textDecoration: 'underline',
-                            fontSize: '18px'}}>{project.name}</Link>
-                    </div>
+            <p>{user_name} ! Your project {data.name} has opened!</p>
 
 
-
-                )
-            })
-        }
-    </div>
-
+        </div>
+    )
 }
 
-export default UserPage;
+export default ProjectPage;

@@ -7,6 +7,8 @@ function MainPage() {
         <Link to="/dima" style={{color: 'black',
             textDecoration: 'none',
             fontSize: '18px'}}>Test user page link</Link>
+
+
     </div>;
 }
 
