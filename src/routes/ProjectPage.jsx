@@ -44,6 +44,7 @@ function ProjectPage(){
     }
 
     // data manipulation
+    console.log(data);
 
 
 
@@ -51,6 +52,8 @@ function ProjectPage(){
         <div>
 
             <p>{user_name} ! Your project {data.name} has opened!</p>
+
+            <p>{JSON.stringify(data.root)}</p>
 
 
         </div>
