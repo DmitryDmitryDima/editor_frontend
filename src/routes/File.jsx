@@ -104,11 +104,6 @@ function File(){
         }
 
 
-
-
-
-
-
     };
 
     const clearOutput = () => {
