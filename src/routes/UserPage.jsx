@@ -1,6 +1,6 @@
 import {Link, useParams} from "react-router-dom";
 import React, { useState, useEffect } from 'react';
-import {CreateButton, DeleteButton, RenameButton, SimpleDialog} from "./UserPageComponents.jsx";
+import {CreateButton, CreationDialog, DeleteButton, RenameButton, SimpleDialogDelete} from "./UserPageComponents.jsx";
 import {Button, Snackbar, Typography} from "@mui/material";
 
 function UserPage(){
@@ -17,6 +17,9 @@ function UserPage(){
     // диалоговое окно удаления
     const [openDialogDelete, setOpenDialogDelete] = useState(false);
     const [selectedValueDelete, setSelectedValueDelete] = useState(-1);
+
+    // диалоговое окно создания проекта
+    const [creationDialog, setCreationDialog] = useState(false);
 
     // состояния snackbar
     const [snackbarmessage, setSnackbarmessage] = useState(null);
@@ -60,7 +63,7 @@ function UserPage(){
 
 
     //диалоговые окна
-    //удаление
+    //--------удаление
     const handleClickOpenDelete = () => {
         setOpenDialogDelete(true);
     };
@@ -73,6 +76,27 @@ function UserPage(){
         openSnackBar(value)
         setSelectedValueDelete(-1);
     };
+
+
+
+
+
+
+    // ------- создание проекта
+    const handleCreationDialogClose = (value) => {
+        fetchData()
+        setCreationDialog(false);
+        openSnackBar(value)
+
+    }
+
+    const handleCreationDialogOpen=()=>{
+        setCreationDialog(true);
+    }
+
+
+
+
 
 
     // уведомления
@@ -136,7 +160,7 @@ function UserPage(){
 
         <div style={{marginTop:"10px"}}>
 
-            <CreateButton onClick={()=>console.log("Создать новое")}/>
+            <CreateButton onClick={handleCreationDialogOpen}/>
         </div>
 
 
@@ -145,10 +169,17 @@ function UserPage(){
                 Selected: {selectedValueDelete}
             </Typography>
             <br />
-            <SimpleDialog
+            <SimpleDialogDelete
                 selectedValue={selectedValueDelete}
                 open={openDialogDelete}
                 onClose={handleCloseDelete}
+            />
+        </div>
+
+        <div>
+            <CreationDialog
+                open={creationDialog}
+                onClose = {handleCreationDialogClose}
             />
         </div>
 

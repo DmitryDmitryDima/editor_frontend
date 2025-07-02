@@ -77,6 +77,7 @@ function ProjectPage(){
                 canDragAndDrop={true}
                 canDropOnFolder={true}
                 viewState={{}}
+
             >
                 <Tree treeId="tree-1" rootItem="root" treeLabel="Tree Example" />
             </UncontrolledTreeEnvironment>
