@@ -68,7 +68,7 @@ function UserPage(){
         setOpenDialogDelete(true);
     };
 
-    // функция, срабатывающая, когда закрывается диалоговое окно - значение возвращается из компонента
+    // функция, срабатывающая, когда закрывается диалоговое окно удаления - значение возвращается из компонента
     const handleCloseDelete = (value) => {
         // обновляем список
         fetchData()
@@ -133,7 +133,7 @@ function UserPage(){
                         <div style={{
                             border:"1px solid black"
                         }}>
-                        <Link to={"/"+user_name+"/"+project.name} style={{color: 'black',
+                        <Link to={"/"+user_name+"/projects/"+project.name} style={{color: 'black',
                             textDecoration: 'underline',
                             fontSize: '18px'
                         }}>{project.name}</Link>

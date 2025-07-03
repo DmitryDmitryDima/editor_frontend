@@ -13,8 +13,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<MainPage />} />
                     <Route path="/:user_name" element={<UserPage />} />
-                    <Route path="/:user_name/:project_name/:file_name" element={<File />} />
-                    <Route path="/:user_name/:project_name/" element={<ProjectPage />} />
+                    <Route path="/:user_name/projects/:project_name/:file_name" element={<File />} />
+                    <Route path="/:user_name/projects/:project_name/" element={<ProjectPage />} />
 
                 </Routes>
             </BrowserRouter>
