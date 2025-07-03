@@ -14,7 +14,7 @@ function ProjectPage(){
     const {user_name} = useParams();
     const {project_name} = useParams();
 
-    const [data, setData] = useState(null)
+    const [data, setData] = useState({})
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(true);
 
@@ -32,6 +32,23 @@ function ProjectPage(){
     // состояния snackbar
     const [snackbarmessage, setSnackbarmessage] = useState(null);
     const [snackBarOpened, setSnackbarOpened] = useState(false);
+
+
+
+
+
+
+    // хуки работы с данными
+    const items = useMemo(() => ({ ...data.flatTree }), [data.flatTree]);
+    const dataProvider = useMemo(
+        () =>
+            new StaticTreeDataProvider(items, (item, data) => ({
+                ...item,
+                data,
+            })),
+        [items]
+    );
+
 
 
 
@@ -83,6 +100,8 @@ function ProjectPage(){
 
 
             setData(jsonData);
+
+
             // for correct
             setFocusItem(jsonData.flatTree.basic_root)
         } catch (err) {
@@ -133,9 +152,7 @@ function ProjectPage(){
 
 
 
-    const dataProvider = new StaticTreeDataProvider(data.flatTree,
-        (item, newName) =>
-        ({ ...item, data: newName }));
+
 
 
 
@@ -160,6 +177,7 @@ function ProjectPage(){
 
 
             <UncontrolledTreeEnvironment
+                key={JSON.stringify(data.flatTree)}
                 dataProvider={dataProvider}
                 getItemTitle={item => item.data}
                 canDragAndDrop={true}
@@ -167,6 +185,7 @@ function ProjectPage(){
                 viewState={{}}
                 onFocusItem={handleFocus}
                 onSelectItems={handleSelection}
+                canReorderItems
 
             >
                 <Tree treeId="tree-1" rootItem="root" treeLabel="Tree Example" />
