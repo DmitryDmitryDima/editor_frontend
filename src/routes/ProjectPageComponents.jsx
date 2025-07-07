@@ -2,6 +2,73 @@ import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogT
 import {useParams} from "react-router-dom";
 
 
+
+// делаю отдельные диалоги для директории и файла - вдруг логика будет кардинально отличаться?
+export function DirectoryRemovalDialog(props) {
+    const {onClose, open, parentData} = props;
+    const {project_name} = useParams();
+
+    const {user_name} = useParams();
+
+    // закрытие диалога без совершения какого либо действия
+    const handleClose = () => {
+
+
+        onClose("No action");
+    };
+
+    const handleYes=()=>{
+        deleting();
+    }
+
+
+
+
+    const deleting = async () => {
+
+        const parentIndex = parentData.index;
+        const apiPath = `/api/users/${user_name}/projects/${project_name}/removeDirectory/${parentIndex}`
+        
+        try {
+            const response = await fetch(apiPath, {method:"POST"});
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            onClose("Директория успешно стерта")
+
+            //const jsonData = await response.json();
+            //setData(jsonData);
+        } catch (err) {
+            onClose("Удаление завершилось фейлом")
+            //setError(err);
+        } finally {
+            //setLoading(false);
+
+        }
+    };
+
+
+
+
+    return (
+        <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>Удалить всю директорию {parentData.data} ?</DialogTitle>
+
+            <DialogContent sx={{ paddingBottom: 0 }}>
+
+                    <DialogActions>
+                        <Button onClick={handleYes}>Да</Button>
+                        <Button onClick={handleClose}>Нет!</Button>
+                    </DialogActions>
+
+            </DialogContent>
+        </Dialog>
+    );
+
+}
+
+
 export function DirectoryCreationDialog(props){
     const {onClose, open, parentData} = props;
 

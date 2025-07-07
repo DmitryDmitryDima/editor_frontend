@@ -1,10 +1,10 @@
 import {useParams} from "react-router-dom";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
 import {Button, ButtonGroup, IconButton, Snackbar} from "@mui/material";
 
-import {DirectoryCreationDialog} from "./ProjectPageComponents.jsx";
+import {DirectoryCreationDialog, DirectoryRemovalDialog} from "./ProjectPageComponents.jsx";
 
 
 
@@ -14,17 +14,37 @@ function ProjectPage(){
     const {user_name} = useParams();
     const {project_name} = useParams();
 
-    const [data, setData] = useState({})
+    const [data, setData] = useState({ flatTree: {} })
+
+
     const [error, setError] = useState(null)
     const [loading, setLoading] = useState(true);
+
+    const [view, setView] = useState({});
+
+    const environment = useRef();
+    const tree = useRef();
+
+
+
+
+
+
+
+
 
 
 
     // для дерева
     const [focusItem, setFocusItem] = useState(null);
 
+
+
     // диалоговое окно создания директории
     const [directoryCreationDialog, setDirectoryCreationDialog] = useState(false);
+
+    // диалоговое окно удаления директории
+    const [directoryRemovalDialog, setDirectoryRemovalDialog] = useState(false);
 
 
 
@@ -58,17 +78,41 @@ function ProjectPage(){
     }
 
 
-    const handleDirectoryCreationDialogClose = (value) => {
-        fetchData();
+    const handleDirectoryCreationDialogClose =  (value) => {
+
+        fetchData()
         setDirectoryCreationDialog(false);
         openSnackBar(value)
+
+
+
+
+
+
     }
+
+
+
+
+    // хуки диалогового окна удаления директории
+    const handleDirectoryRemovalDialogOpen = ()=>{
+        setDirectoryRemovalDialog(true);
+    }
+    const handleDirectoryRemovalDialogClose = (value)=>{
+        fetchData()
+        setDirectoryRemovalDialog(false);
+        openSnackBar(value)
+    }
+
+
 
 
     // уведомления
     const snackBarHandleClose = ()=>{
         console.log("close snackbar");
         setSnackbarOpened(false);
+
+
     }
 
     const openSnackBar = (message) => {
@@ -77,9 +121,43 @@ function ProjectPage(){
     };
 
 
+    // построение дерева - пересборка в случае изменения
+    const treeBuild = ()=>{
+
+        setTimeout(()=>{
+            if (tree.current) {
+                let expanded = view["tree-1"].expandedItems
+
+
+                tree.current.expandSubsequently(expanded)
+
+                console.log(view);
+
+
+
+            }
+        }, 100)
+
+
+
+    }
+
+
+    // функция запроса информации с сервера - в данной версии это происходит после каждого из изменений
+
+
     const apiPath = "/api/users/"+user_name+"/projects/"+project_name;
 
     const fetchData = async () => {
+
+
+        // если речь идет об удалении. мы должны отредактировать view
+        if (environment.current) {
+            setView(environment.current.viewState);
+        }
+
+
+
         try {
             const response = await fetch(apiPath);
             if (!response.ok) {
@@ -87,7 +165,7 @@ function ProjectPage(){
             }
             const jsonData = await response.json();
 
-            console.log("fetching");
+
 
 
             jsonData.flatTree["root"] = {
@@ -104,6 +182,11 @@ function ProjectPage(){
 
             // for correct
             setFocusItem(jsonData.flatTree.basic_root)
+
+
+
+            console.log("data fetched and changed");
+
         } catch (err) {
             setError(err);
         } finally {
@@ -115,6 +198,8 @@ function ProjectPage(){
 
         fetchData();
     }, []);
+
+
 
 
 
@@ -169,7 +254,7 @@ function ProjectPage(){
 
             <ButtonGroup size="small">
                 <Button onClick={handleDirectoryCreationDialogOpen} disabled={!focusItem.isFolder}>Create</Button>
-                <Button>Delete</Button>
+                <Button onClick={handleDirectoryRemovalDialogOpen} disabled={focusItem.index === "basic_root"}>Delete</Button>
             </ButtonGroup>
 
 
@@ -177,7 +262,9 @@ function ProjectPage(){
 
 
             <UncontrolledTreeEnvironment
+
                 key={JSON.stringify(data.flatTree)}
+                ref={environment}
                 dataProvider={dataProvider}
                 getItemTitle={item => item.data}
                 canDragAndDrop={true}
@@ -186,9 +273,13 @@ function ProjectPage(){
                 onFocusItem={handleFocus}
                 onSelectItems={handleSelection}
                 canReorderItems
+                onRegisterTree={treeBuild}
+
+
+
 
             >
-                <Tree treeId="tree-1" rootItem="root" treeLabel="Tree Example" />
+                <Tree treeId="tree-1" rootItem="root" treeLabel="Tree Example" ref={tree} />
             </UncontrolledTreeEnvironment>
 
 
@@ -197,6 +288,15 @@ function ProjectPage(){
                     open={directoryCreationDialog}
                     onClose = {handleDirectoryCreationDialogClose}
                     parentData = {focusItem}
+                />
+            </div>
+
+            <div>
+                <DirectoryRemovalDialog
+                    open={directoryRemovalDialog}
+                    onClose = {handleDirectoryRemovalDialogClose}
+                    parentData = {focusItem}
+
                 />
             </div>
 
