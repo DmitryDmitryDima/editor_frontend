@@ -3,8 +3,17 @@ import React, {useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
 import {Button, ButtonGroup, IconButton, Snackbar} from "@mui/material";
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import RuleFolderIcon from '@mui/icons-material/RuleFolder';
+import PostAddIcon from '@mui/icons-material/PostAdd';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-import {DirectoryCreationDialog, DirectoryRemovalDialog} from "./ProjectPageComponents.jsx";
+import {
+    DirectoryCreationDialog,
+    DirectoryRemovalDialog,
+    FileCreationDialog,
+    FileRemovalDialog
+} from "./ProjectPageComponents.jsx";
 
 
 
@@ -43,9 +52,14 @@ function ProjectPage(){
     // диалоговое окно создания директории
     const [directoryCreationDialog, setDirectoryCreationDialog] = useState(false);
 
+    // диалоговое окно создания файла
+    const [fileCreationDialog, setFileCreationDialog] = useState(false);
+
     // диалоговое окно удаления директории
     const [directoryRemovalDialog, setDirectoryRemovalDialog] = useState(false);
 
+    // диалоговое окно удаления файла
+    const [fileRemovalDialog, setFileRemovalDialog] = useState(false);
 
 
 
@@ -85,10 +99,17 @@ function ProjectPage(){
         openSnackBar(value)
 
 
+    }
 
+    // хуки диалогового окна создания файла
+    const handleFileCreationDialogOpen = () => {
+        setFileCreationDialog(true);
+    }
 
-
-
+    const handleFileCreationDialogClose = (value) => {
+        fetchData()
+        setFileCreationDialog(false);
+        openSnackBar(value)
     }
 
 
@@ -102,6 +123,28 @@ function ProjectPage(){
         fetchData()
         setDirectoryRemovalDialog(false);
         openSnackBar(value)
+    }
+
+    // хуки диалогового окна удаления файла
+
+    const handleFileRemovalDialogOpen = ()=>{
+        setFileRemovalDialog(true);
+    }
+
+    const handleFileRemovalDialogClose = ()=>{
+        fetchData()
+        setFileRemovalDialog(false);
+        openSnackBar(value)
+    }
+
+    // хук клика по кнопке удаления - всплывают два окна
+    const handleRemovalClick=()=>{
+        if (focusItem.index.startsWith("file")){
+            handleFileRemovalDialogOpen();
+        }
+        else {
+            handleDirectoryRemovalDialogOpen();
+        }
     }
 
 
@@ -219,7 +262,7 @@ function ProjectPage(){
     // хуки для дерева
 
     const handleFocus = (focusItem)=>{
-        //console.log(focusItem);
+        console.log(focusItem);
         //console.log("focus");
         setFocusItem(focusItem)
     }
@@ -253,8 +296,24 @@ function ProjectPage(){
             <p>{project_name} Project</p>
 
             <ButtonGroup size="small">
-                <Button onClick={handleDirectoryCreationDialogOpen} disabled={!focusItem.isFolder}>Create</Button>
-                <Button onClick={handleDirectoryRemovalDialogOpen} disabled={focusItem.index === "basic_root"}>Delete</Button>
+                <IconButton onClick={handleDirectoryCreationDialogOpen} disabled={!focusItem.isFolder} size="large">
+                    <CreateNewFolderIcon/>
+                </IconButton>
+
+                <IconButton onClick={handleFileCreationDialogOpen} disabled={!focusItem.isFolder} size="large">
+                    <PostAddIcon/>
+                </IconButton>
+
+
+
+                <IconButton onClick={handleRemovalClick} disabled={focusItem.index === "basic_root"} size="large" >
+
+                    <DeleteIcon/>
+                </IconButton>
+
+
+
+
             </ButtonGroup>
 
 
@@ -291,6 +350,14 @@ function ProjectPage(){
                 />
             </div>
 
+
+            <div>
+                <FileCreationDialog
+                    open={fileCreationDialog}
+                    onClose = {handleFileCreationDialogClose}
+                    parentData = {focusItem}
+                />
+            </div>
             <div>
                 <DirectoryRemovalDialog
                     open={directoryRemovalDialog}
@@ -298,6 +365,15 @@ function ProjectPage(){
                     parentData = {focusItem}
 
                 />
+            </div>
+
+            <div>
+                <FileRemovalDialog
+                    open={fileRemovalDialog}
+                    onClose = {handleFileRemovalDialogClose}
+                    parentData = {focusItem}
+                    />
+
             </div>
 
 
