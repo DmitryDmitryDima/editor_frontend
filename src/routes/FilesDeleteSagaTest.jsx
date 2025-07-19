@@ -9,23 +9,53 @@ export function FilesDeleteSagaTest() {
         filesToDelete:[], fileIdempotentProcesses:[], fileDeletingCompensationTransactions:[]
     });
 
+    const [consoleData, setConsoleData] = useState(null);
+    const [socket, setSocket] = useState(null);
+
+
     const url = "/api/test/delete/files";
 
 
 
+
+    // подписка на вебсокет
+    useEffect(() => {
+        // 1. Создаем WebSocket-соединение
+        const ws = new WebSocket('ws://localhost:8080/logging');
+
+        // 2. Обработчики событий
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+        };
+
+        ws.onmessage = (event) => {
+            const newMessage = event.data;
+            setConsoleData(newMessage);
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected');
+        };
+
+        setSocket(ws);
+
+        // 3. Функция очистки (закрытие соединения при размонтировании)
+        return () => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        };
+    }, []); // Пустой массив зависимостей = запуск только при монтировании
 
 
 
 
 
     // содержимое таблиц
-
-
-
-
-
-
-
 
 
     useEffect(() => {
@@ -58,7 +88,7 @@ export function FilesDeleteSagaTest() {
         return () => clearInterval(intervalId);
     }, []); // Empty dependency array to run effect only once on mount
 
-    return <div>
+    return <div >
         <p>Файлы к удалению</p>
         <TableContainer component={Paper} sx={{ border: "2px solid red" }}>
             <Table  aria-label="simple table">
@@ -90,6 +120,79 @@ export function FilesDeleteSagaTest() {
             </Table>
         </TableContainer>
 
+        <p>Процессы блокировщики</p>
+        <TableContainer component={Paper} sx={{ border: "2px solid green" }}>
+            <Table  aria-label="simple table">
+                <TableHead >
+                    <TableRow>
+                        <TableCell>Id</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {data.fileIdempotentProcesses.map((row) => (
+
+                        <TableRow
+                            key={row.id}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                            <TableCell component="th" scope="row">
+                                {row.id}
+                            </TableCell>
+
+
+
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+
+        <p>Компенсационные транзакции</p>
+        <TableContainer component={Paper} sx={{ border: "2px solid blue" }}>
+            <Table  aria-label="simple table">
+                <TableHead >
+                    <TableRow>
+                        <TableCell>Id</TableCell>
+                        <TableCell align="right">File id</TableCell>
+                        <TableCell align="right">Step</TableCell>
+                        <TableCell align="right">Attempts</TableCell>
+
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {data.fileDeletingCompensationTransactions.map((row) => (
+
+                        <TableRow
+                            key={row.id}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                            <TableCell component="th" scope="row">
+                                {row.id}
+                            </TableCell>
+                            <TableCell
+                                align='right'>
+                                {row.file_id}
+                            </TableCell>
+
+                            <TableCell
+                                align='right'>
+                                {row.step}
+                            </TableCell>
+
+                            <TableCell
+                                align='right'>
+                                {row.attempts}
+                            </TableCell>
+
+
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </TableContainer>
+
+        <p>Последнее действие в консоли</p>
+        <p>{consoleData}</p>
 
 
     </div>
