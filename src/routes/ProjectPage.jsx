@@ -131,7 +131,7 @@ function ProjectPage(){
         setFileRemovalDialog(true);
     }
 
-    const handleFileRemovalDialogClose = ()=>{
+    const handleFileRemovalDialogClose = (value)=>{
         fetchData()
         setFileRemovalDialog(false);
         openSnackBar(value)
