@@ -3,17 +3,17 @@ import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow}
 import { DataGrid } from '@mui/x-data-grid';
 
 
-export function FilesDeleteSagaTest() {
+export function AppDashboard() {
 
     const [data, setData] = useState({
-        filesToDelete:[], fileIdempotentProcesses:[], fileDeletingCompensationTransactions:[]
+        files:[]
     });
 
     const [consoleData, setConsoleData] = useState(null);
     const [socket, setSocket] = useState(null);
 
 
-    const url = "/api/test/delete/files";
+    const url = "/api/test/dashboard";
 
 
 
@@ -89,7 +89,7 @@ export function FilesDeleteSagaTest() {
     }, []); // Empty dependency array to run effect only once on mount
 
     return <div >
-        <p>Файлы к удалению</p>
+        <p>Файлы проекта</p>
         <TableContainer component={Paper} sx={{ border: "2px solid red" }}>
             <Table  aria-label="simple table">
                 <TableHead >
@@ -99,7 +99,7 @@ export function FilesDeleteSagaTest() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {data.filesToDelete.map((row) => (
+                    {data.files.map((row) => (
 
                         <TableRow
                             key={row.index}
@@ -120,76 +120,7 @@ export function FilesDeleteSagaTest() {
             </Table>
         </TableContainer>
 
-        <p>Процессы блокировщики</p>
-        <TableContainer component={Paper} sx={{ border: "2px solid green" }}>
-            <Table  aria-label="simple table">
-                <TableHead >
-                    <TableRow>
-                        <TableCell>Id</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.fileIdempotentProcesses.map((row) => (
 
-                        <TableRow
-                            key={row.id}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell component="th" scope="row">
-                                {row.id}
-                            </TableCell>
-
-
-
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-
-        <p>Компенсационные транзакции</p>
-        <TableContainer component={Paper} sx={{ border: "2px solid blue" }}>
-            <Table  aria-label="simple table">
-                <TableHead >
-                    <TableRow>
-                        <TableCell>Id</TableCell>
-                        <TableCell align="right">File id</TableCell>
-                        <TableCell align="right">Step</TableCell>
-                        <TableCell align="right">Attempts</TableCell>
-
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {data.fileDeletingCompensationTransactions.map((row) => (
-
-                        <TableRow
-                            key={row.id}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell component="th" scope="row">
-                                {row.id}
-                            </TableCell>
-                            <TableCell
-                                align='right'>
-                                {row.file_id}
-                            </TableCell>
-
-                            <TableCell
-                                align='right'>
-                                {row.step}
-                            </TableCell>
-
-                            <TableCell
-                                align='right'>
-                                {row.attempts}
-                            </TableCell>
-
-
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
 
         <p>Последнее действие в консоли</p>
         <p>{consoleData}</p>

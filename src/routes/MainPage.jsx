@@ -2,7 +2,7 @@ import {Link} from "react-router-dom";
 
 function MainPage() {
     return <div>
-        <p>Registration, authorization or redirect to authorized page</p>
+        <p>Registration, authorization or redirect to authorized page will be here</p>
 
         <Link to="/dima" style={{color: 'black',
             textDecoration: 'none',
@@ -10,9 +10,9 @@ function MainPage() {
 
         <p>Tests</p>
 
-        <Link to="/files_delete_dashboard" style={{color: 'black',
+        <Link to="/app/dashboard" style={{color: 'black',
             textDecoration: 'none',
-            fontSize: '18px'}}>Files deleting saga dashboard</Link>
+            fontSize: '18px'}}>App Dashboard</Link>
 
 
     </div>;
