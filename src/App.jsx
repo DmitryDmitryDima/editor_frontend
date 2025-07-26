@@ -4,6 +4,8 @@ import MainPage from "./routes/MainPage.jsx";
 import File from "./routes/File.jsx";
 import ProjectPage from "./routes/ProjectPage.jsx";
 import {AppDashboard} from "./routes/AppDashboard.jsx";
+import {TextFile} from "./routes/TextFile.jsx";
+import {EditorHandler} from "./routes/EditorHandler.jsx";
 
 
 function App() {
@@ -15,8 +17,10 @@ function App() {
                     <Route path="/app/dashboard" element={<AppDashboard/>} />
                     <Route path="/" element={<MainPage />} />
                     <Route path="/:user_name" element={<UserPage />} />
-                    <Route path="/:user_name/projects/:project_name/:file_name" element={<File />} />
+                    <Route path="/:user_name/projects/:project_name/*" element={<EditorHandler />} />
+
                     <Route path="/:user_name/projects/:project_name/" element={<ProjectPage />} />
+
 
                 </Routes>
             </BrowserRouter>

@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
@@ -7,6 +7,7 @@ import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import RuleFolderIcon from '@mui/icons-material/RuleFolder';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FileOpenIcon from '@mui/icons-material/FileOpen';
 
 import {
     DirectoryCreationDialog,
@@ -31,8 +32,13 @@ function ProjectPage(){
 
     const [view, setView] = useState({});
 
+    const [editorLink, setEditorLink] = useState(null);
+
     const environment = useRef();
     const tree = useRef();
+    const navigate = useNavigate();
+
+
 
 
 
@@ -145,6 +151,11 @@ function ProjectPage(){
         else {
             handleDirectoryRemovalDialogOpen();
         }
+    }
+
+    // хук перехода к редактору файла
+    const handleFileOpenClick=()=>{
+        navigate(editorLink)
     }
 
 
@@ -265,7 +276,41 @@ function ProjectPage(){
         console.log(focusItem);
         //console.log("focus");
         setFocusItem(focusItem)
+
+        setEditorLink(null); // сброс
+
+
+        if (focusItem.index.startsWith("file")){
+            // редактор доступен только для файла
+            let way = "/"+user_name+"/projects/";
+
+            environment.current.viewState["tree-1"].expandedItems.forEach(item=>{
+                console.log(data.flatTree[item].data)
+                way+=data.flatTree[item].data+"/";
+            })
+
+            let file_data = data.flatTree[focusItem.index].data;
+            way+=file_data;
+
+            // ссылка формируется с указанием специального типа редактора дял java файла. Другие файлы обрабатываются иначе
+            if (file_data.endsWith(".java")){
+                way+="?editor=java"
+            }
+            else {
+                way+="?editor=default"
+            }
+
+            setEditorLink(way)
+
+        }
+
     }
+
+
+
+
+
+
 
     const handleSelection = (selectedItems)=>{
 
@@ -310,6 +355,13 @@ function ProjectPage(){
 
                     <DeleteIcon/>
                 </IconButton>
+
+                <IconButton onClick={handleFileOpenClick} disabled={focusItem.isFolder} size="large" >
+
+                    <FileOpenIcon/>
+                </IconButton>
+
+
 
 
 
