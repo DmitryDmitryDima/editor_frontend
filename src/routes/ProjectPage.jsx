@@ -271,36 +271,100 @@ function ProjectPage(){
 
 
     // хуки для дерева
+    // тут мы конструируем путь до файла, чтобы не заниматься этим на бэке
+    //todo данный алгоритм можно оптимизировать, контруируя map ребенок-родитель при запросе дерева с сервера
 
     const handleFocus = (focusItem)=>{
         console.log(focusItem);
         //console.log("focus");
         setFocusItem(focusItem)
 
-        setEditorLink(null); // сброс
+        setEditorLink(null); // сброс ссылки
+
 
 
         if (focusItem.index.startsWith("file")){
             // редактор доступен только для файла
-            let way = "/"+user_name+"/projects/";
+            let basic_way = "/"+user_name+"/projects/";
+            let constructed_way = [];
 
-            environment.current.viewState["tree-1"].expandedItems.forEach(item=>{
-                console.log(data.flatTree[item].data)
-                way+=data.flatTree[item].data+"/";
-            })
 
-            let file_data = data.flatTree[focusItem.index].data;
-            way+=file_data;
+            // ищем родительскую директорию
+            let parent = null;
 
-            // ссылка формируется с указанием специального типа редактора дял java файла. Другие файлы обрабатываются иначе
-            if (file_data.endsWith(".java")){
-                way+="?editor=java"
+
+
+            for (const key in data.flatTree){
+
+                let directory = data.flatTree[key];
+
+                for (const child of directory.children){
+                    //console.log(child);
+                    if (child===focusItem.index){
+                        parent = directory;
+                        break;
+                    }
+                }
+
             }
+
+            constructed_way.unshift(parent.data);
+
+
+
+            let depth = 0;
+            while (parent.index!=="basic_root"){
+                if (depth===50) {
+
+                    throw new Error("something wrong with tree structure")
+                }
+                for (const key in data.flatTree){
+
+                    let directory = data.flatTree[key];
+                    let found = false;
+
+                    for (const child of directory.children){
+
+                        if (child===parent.index){
+                            parent = directory;
+                            constructed_way.unshift(parent.data);
+                            found = true;
+
+                            break;
+                        }
+                    }
+
+                    if (found){
+                        break;
+                    }
+
+
+                }
+                depth++;
+            }
+
+
+
+            for (const part of constructed_way){
+                basic_way+=part+"/"
+            }
+
+            basic_way+=focusItem.data;
+
+
+
+            if (focusItem.data.endsWith(".java")){
+                basic_way+="?editor=java";
+            }
+
             else {
-                way+="?editor=default"
+                basic_way+="?editor=default";
             }
 
-            setEditorLink(way)
+
+
+
+            setEditorLink(basic_way)
 
         }
 
