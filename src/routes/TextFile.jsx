@@ -1,8 +1,8 @@
 import {useNavigate, useParams} from "react-router-dom";
-import {Button, ButtonGroup} from "@mui/material";
-import {useEffect, useState} from "react";
+import {Button, ButtonGroup, Snackbar} from "@mui/material";
+import React, {useEffect, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
-import { createEditor, Transforms } from 'slate'
+import { createEditor, Transforms, Node } from 'slate'
 
 
 
@@ -10,6 +10,7 @@ import { createEditor, Transforms } from 'slate'
 
 export function TextFile() {
 
+    // параметры, необходимые для начального fetch
     const {
         user_name,
         project_name,
@@ -17,12 +18,31 @@ export function TextFile() {
 
     } = useParams();
 
+    // фронтенд время - обновляется из сервера при успешном сохранении, вебсокет ивентах, чтении файла
+    // предназначено для того, чтобы случайно не сохранить старое состояние редактора (в ситуации, когда редактирование происходит параллельно)
+    // если отправленное фронтенд время старше, чем последнее изменение в файле, сохранение не происходит
+    const[frontendTime, setfrontendTime] = useState(null);
+
+
+    // данные, полученные от сервера при первоначальном запросе
     const [data, setData] = useState({
         content:"файл не загружен",
+        file_id:null,
+        project_id:null
     });
 
-    // slate editor integration
 
+    // snackbar options
+    // состояния snackbar
+    const [snackbarmessage, setSnackbarmessage] = useState(null);
+    const [snackBarOpened, setSnackbarOpened] = useState(false);
+
+
+
+
+
+
+    // slate editor integration
     const initialValue = [
         {
             type: 'paragraph',
@@ -31,6 +51,22 @@ export function TextFile() {
     ]
 
     const [editor] = useState(() => withReact(createEditor()))
+
+
+
+    // уведомления
+    const snackBarHandleClose = ()=>{
+        console.log("close snackbar");
+        setSnackbarOpened(false);
+    }
+
+    const openSnackBar = (message) => {
+        setSnackbarmessage(message);
+        setSnackbarOpened(true);
+    };
+
+
+
 
 
 
@@ -51,11 +87,21 @@ export function TextFile() {
     const fetchFileData=async ()=>{
 
         try {
-            const response = await fetch("/api/users"+projectLink+"/"+splat);
+            const api = "/api/tools/editor/readAndCache"
+            const body = JSON.stringify({
+                projectname:project_name,
+                username:user_name,
+                fullPath:splat
+
+            })
+
+            const response = await fetch(api, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const jsonData = await response.json();
+            setfrontendTime(jsonData.updatedAt);
+            console.log(jsonData);
 
             setData(jsonData);
 
@@ -107,10 +153,52 @@ export function TextFile() {
 
 
 
-
+    // нажимаем на кнопку "назад" к проекту
     const handleBackButtonClick = () => {
         navigate(projectLink);
     }
+
+    // кнопка ручного сохранения (логика сохранения также существует в автоматическом варианте)
+    const handleSaveButtonClick = ()=>{
+        saveFileData()
+    }
+
+    // сохранение файла через пост запрос
+    const saveFileData=async ()=>{
+        try {
+            const api = "/api/tools/editor/save"
+            const body = JSON.stringify({
+                content: Node.string(editor),
+                file_id:data.file_id,
+                project_id:data.project_id,
+                full_path:splat,
+                clientTime:frontendTime
+            })
+
+            const response = await fetch(api, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
+            if (!response.ok) {
+                const jsonData = await response.json();
+                throw new Error(jsonData.message);
+            }
+
+            const jsonData = await response.json();
+
+            setfrontendTime(jsonData.updatedAt)
+            openSnackBar("Сохранено")
+
+
+        }
+        catch (error) {
+            // snackbar action
+
+
+            openSnackBar(error)
+            fetchFileData()
+        }
+
+    }
+
+
 
 
 
@@ -119,7 +207,7 @@ export function TextFile() {
         <div>
             <ButtonGroup>
                 <Button onClick={handleBackButtonClick} variant="contained">К проекту {project_name}</Button>
-                <Button variant="contained">Сохранить</Button>
+                <Button onClick={handleSaveButtonClick}  variant="contained">Сохранить</Button>
             </ButtonGroup>
 
 
@@ -134,6 +222,7 @@ export function TextFile() {
 
                         // для автоматического сохранения будет обновляться таймер
                         //console.log(editor.children);
+
                         editor.children.forEach((item) => {
                             item.children.forEach((child) => {
                                 console.log(child.text);
@@ -143,6 +232,14 @@ export function TextFile() {
                     }}
                 />
             </Slate>
+
+            <Snackbar
+                open={snackBarOpened}
+                autoHideDuration={2000}
+                onClose={snackBarHandleClose}
+                message={snackbarmessage}
+
+            />
 
 
 
