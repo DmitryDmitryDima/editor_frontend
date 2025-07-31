@@ -21,6 +21,7 @@
     "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.1.2",
     "@mui/x-data-grid": "^8.8.0",
+    "@stomp/stompjs": "^7.1.1",
     "@uiw/react-codemirror": "^4.23.10",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
     "is-hotkey": "^0.2.0",

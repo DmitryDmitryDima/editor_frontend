@@ -1,4 +1,4 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams, useLocation} from "react-router-dom";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
@@ -8,6 +8,7 @@ import RuleFolderIcon from '@mui/icons-material/RuleFolder';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileOpenIcon from '@mui/icons-material/FileOpen';
+import { Client } from '@stomp/stompjs';
 
 import {
     DirectoryCreationDialog,
@@ -34,9 +35,14 @@ function ProjectPage(){
 
     const [editorLink, setEditorLink] = useState(null);
 
+    // объекты дерева
     const environment = useRef();
     const tree = useRef();
+    // вебсокет клиент
+    const stompClientRef = useRef(null);
+
     const navigate = useNavigate();
+    const location = useLocation();
 
 
 
@@ -202,6 +208,8 @@ function ProjectPage(){
 
     const apiPath = "/api/users/"+user_name+"/projects/"+project_name;
 
+
+
     const fetchData = async () => {
 
 
@@ -241,6 +249,8 @@ function ProjectPage(){
 
             console.log("data fetched and changed");
 
+            initWebSocketConnection(jsonData.id) // в случае успеха
+
         } catch (err) {
             setError(err);
         } finally {
@@ -248,10 +258,63 @@ function ProjectPage(){
         }
     };
 
+    // инициализация вебсокета
+    const initWebSocketConnection = (id) => {
+        // Если соединение уже существует - не создаем новое
+        // используем null check
+        if (stompClientRef.current) return;
+
+        const client = new Client({
+            brokerURL: 'ws://localhost:8080/ws/project',
+            onWebSocketClose: ()=>{
+                console.log('WebSocket closed');
+            },
+            onConnect: () => {
+                console.log('WebSocket connected, process subscribe');
+                // подписка на общий канал проекта
+
+
+                client.subscribe('/projects/'+id, (message) => {
+                    const update = JSON.parse(message.body);
+                    // Обработка входящих сообщений
+                    console.log(update)
+                });
+            },
+            onStompError: (frame) => {
+                console.error('WebSocket error:', frame.headers.message);
+            },
+            reconnectDelay: 5000,
+        });
+
+        stompClientRef.current = client;
+        client.activate();
+    };
+
+
+
     useEffect(() => {
 
         fetchData();
-    }, []);
+
+
+
+        return ()=>{
+            if (stompClientRef.current) {
+                console.log('disconnected');
+
+                stompClientRef.current.deactivate();
+
+
+            }
+        }
+
+
+
+
+    }, [location.pathname]);
+
+
+
 
 
 

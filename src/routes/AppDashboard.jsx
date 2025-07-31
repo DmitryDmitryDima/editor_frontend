@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
+import {useLocation} from "react-router-dom";
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import { DataGrid } from '@mui/x-data-grid';
 
@@ -10,7 +11,9 @@ export function AppDashboard() {
     });
 
     const [consoleData, setConsoleData] = useState(null);
-    const [socket, setSocket] = useState(null);
+    const  socketRef = useRef(null);
+
+    const location=  useLocation();
 
 
     const url = "/api/test/dashboard";
@@ -20,6 +23,10 @@ export function AppDashboard() {
 
     // подписка на вебсокет
     useEffect(() => {
+        // закрываем прошлое соединение
+        if (socketRef.current) {
+            socketRef.current.close();
+        }
         // 1. Создаем WebSocket-соединение
         const ws = new WebSocket('ws://localhost:8080/logging');
 
@@ -29,6 +36,7 @@ export function AppDashboard() {
         };
 
         ws.onmessage = (event) => {
+            console.log(event);
             const newMessage = event.data;
             setConsoleData(newMessage);
         };
@@ -41,15 +49,17 @@ export function AppDashboard() {
             console.log('WebSocket disconnected');
         };
 
-        setSocket(ws);
+        socketRef.current = ws;
 
         // 3. Функция очистки (закрытие соединения при размонтировании)
         return () => {
-            if (ws.readyState === WebSocket.OPEN) {
+            if (ws.readyState !== WebSocket.CLOSED) {
+
                 ws.close();
             }
+
         };
-    }, []); // Пустой массив зависимостей = запуск только при монтировании
+    }, [location.pathname]); // зависимость от location
 
 
 

@@ -1,8 +1,9 @@
-import {useNavigate, useParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {Button, ButtonGroup, Snackbar} from "@mui/material";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
 import { createEditor, Transforms, Node } from 'slate'
+import { Client } from '@stomp/stompjs';
 
 
 
@@ -78,8 +79,13 @@ export function TextFile() {
 
     // путь к проекту
     const projectLink = "/"+user_name+"/projects/"+project_name;
+
+    // вебсокет клиент
+    const stompClientRef = useRef(null);
     // навигация
     const navigate = useNavigate();
+    // location
+    const location = useLocation();
 
 
 
@@ -118,6 +124,9 @@ export function TextFile() {
             );
 
 
+            initWebSocketConnection(jsonData.project_id, jsonData.file_id)
+
+
 
 
 
@@ -143,11 +152,57 @@ export function TextFile() {
 
     }
 
+    // инициализация вебсокета
+    const initWebSocketConnection = (project_id, file_id) => {
+        // Если соединение уже существует - не создаем новое
+        // используем null check
+        if (stompClientRef.current) return;
+
+        const client = new Client({
+            brokerURL: 'ws://localhost:8080/ws/project',
+            onWebSocketClose: ()=>{
+                console.log('WebSocket closed');
+            },
+            onConnect: () => {
+                console.log('WebSocket connected, process subscribe');
+                // подписка на общий канал проекта
+
+
+                client.subscribe('/projects/'+project_id+'/'+file_id, (message) => {
+                    const update = JSON.parse(message.body);
+                    if (update.type==='FILE_SAVE'){
+                        console.log("file saved");
+                    }
+                    // Обработка входящих сообщений
+                    console.log(update)
+                });
+            },
+            onStompError: (frame) => {
+                console.error('WebSocket error:', frame.headers.message);
+            },
+            reconnectDelay: 5000,
+        });
+
+        stompClientRef.current = client;
+        client.activate();
+    };
+
+
+
 
     useEffect(() => {
 
         fetchFileData();
-    }, []);
+
+        return ()=>{
+            if (stompClientRef.current) {
+                console.log('disconnected');
+
+                stompClientRef.current.deactivate();
+
+            }
+        }
+    }, [location.pathname]);
 
 
 
