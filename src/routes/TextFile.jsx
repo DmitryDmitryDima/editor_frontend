@@ -106,6 +106,7 @@ export function TextFile() {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const jsonData = await response.json();
+
             setfrontendTime(jsonData.updatedAt);
             console.log(jsonData);
 
@@ -170,7 +171,9 @@ export function TextFile() {
 
                 client.subscribe('/projects/'+project_id+'/'+file_id, (message) => {
                     const update = JSON.parse(message.body);
-                    if (update.type==='FILE_SAVE'){
+                    if (update.type==='FILE_SAVE' && update.time!==frontendTime){
+                        console.log("update time", update.time);
+                        console.log("frontend", frontendTime); // todo почему всегда null?
                         console.log("file saved");
                     }
                     // Обработка входящих сообщений
@@ -245,9 +248,9 @@ export function TextFile() {
         }
         catch (error) {
             // snackbar action
+            console.log(error.message);
 
-
-            openSnackBar(error)
+            openSnackBar(error.message);
             fetchFileData()
         }
 
