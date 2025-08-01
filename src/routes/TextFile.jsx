@@ -1,9 +1,10 @@
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {Button, ButtonGroup, Snackbar} from "@mui/material";
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
 import { createEditor, Transforms, Node } from 'slate'
 import { Client } from '@stomp/stompjs';
+import { v4 as uuid } from 'uuid';
 
 
 
@@ -19,10 +20,7 @@ export function TextFile() {
 
     } = useParams();
 
-    // фронтенд время - обновляется из сервера при успешном сохранении, вебсокет ивентах, чтении файла
-    // предназначено для того, чтобы случайно не сохранить старое состояние редактора (в ситуации, когда редактирование происходит параллельно)
-    // если отправленное фронтенд время старше, чем последнее изменение в файле, сохранение не происходит
-    const[frontendTime, setfrontendTime] = useState(null);
+
 
 
     // данные, полученные от сервера при первоначальном запросе
@@ -82,11 +80,32 @@ export function TextFile() {
 
     // вебсокет клиент
     const stompClientRef = useRef(null);
+
+    // фронтенд время - обновляется из сервера при успешном сохранении, вебсокет ивентах, чтении файла
+    // предназначено для того, чтобы случайно не сохранить старое состояние редактора (в ситуации, когда редактирование происходит параллельно)
+    // если отправленное фронтенд время старше, чем последнее изменение в файле, сохранение не происходит
+    const frontendTimeRef = useRef(null);
+
+
+    const file_save_event_id = useRef(null)
+
+
     // навигация
     const navigate = useNavigate();
     // location
     const location = useLocation();
 
+
+    // мгновенное обновление frontend time
+    const updateFrontendTime = useCallback((newTime) => {
+        frontendTimeRef.current = newTime;
+
+    }, []);
+
+    // мгновенное обновление file_save_event_id
+    const update_file_save_event_id = useCallback((new_file_save_event_id) => {
+        file_save_event_id.current = new_file_save_event_id;
+    }, [])
 
 
     // запрос содержимого файла
@@ -107,7 +126,7 @@ export function TextFile() {
             }
             const jsonData = await response.json();
 
-            setfrontendTime(jsonData.updatedAt);
+            updateFrontendTime(jsonData.updatedAt);
             console.log(jsonData);
 
             setData(jsonData);
@@ -170,14 +189,10 @@ export function TextFile() {
 
 
                 client.subscribe('/projects/'+project_id+'/'+file_id, (message) => {
+
                     const update = JSON.parse(message.body);
-                    if (update.type==='FILE_SAVE' && update.time!==frontendTime){
-                        console.log("update time", update.time);
-                        console.log("frontend", frontendTime); // todo почему всегда null?
-                        console.log("file saved");
-                    }
-                    // Обработка входящих сообщений
-                    console.log(update)
+                    console.log(update);
+                    handleWebSocketEvent(update);
                 });
             },
             onStompError: (frame) => {
@@ -211,6 +226,28 @@ export function TextFile() {
 
 
 
+
+
+    // ивенты вебсокета
+    const handleWebSocketEvent = useCallback((evt) => {
+        if (evt.type === 'FILE_SAVE') {
+
+            console.log(evt.event_id);
+            console.log(file_save_event_id.current);
+            if (evt.file_id!==file_save_event_id.current){
+                fetchFileData()
+
+            }
+
+
+
+        }
+    }, [file_save_event_id]);
+
+
+
+
+
     // нажимаем на кнопку "назад" к проекту
     const handleBackButtonClick = () => {
         navigate(projectLink);
@@ -224,13 +261,20 @@ export function TextFile() {
     // сохранение файла через пост запрос
     const saveFileData=async ()=>{
         try {
+
+            const event_id = uuid();
+            update_file_save_event_id(event_id);
+
+
+
             const api = "/api/tools/editor/save"
             const body = JSON.stringify({
                 content: Node.string(editor),
                 file_id:data.file_id,
                 project_id:data.project_id,
                 full_path:splat,
-                clientTime:frontendTime
+                clientTime:frontendTimeRef.current,
+                event_id:event_id,
             })
 
             const response = await fetch(api, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
@@ -241,7 +285,7 @@ export function TextFile() {
 
             const jsonData = await response.json();
 
-            setfrontendTime(jsonData.updatedAt)
+            updateFrontendTime(jsonData.updatedAt);
             openSnackBar("Сохранено")
 
 
@@ -251,7 +295,7 @@ export function TextFile() {
             console.log(error.message);
 
             openSnackBar(error.message);
-            fetchFileData()
+            await fetchFileData()
         }
 
     }
