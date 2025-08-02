@@ -28,7 +28,7 @@ export function AppDashboard() {
             socketRef.current.close();
         }
         // 1. Создаем WebSocket-соединение
-        const ws = new WebSocket('/logging');
+        const ws = new WebSocket('/ws/logging');
 
         // 2. Обработчики событий
         ws.onopen = () => {
