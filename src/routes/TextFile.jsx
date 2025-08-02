@@ -179,7 +179,8 @@ export function TextFile() {
         if (stompClientRef.current) return;
 
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws/project',
+            // old 'ws://localhost:8080/ws/project'
+            brokerURL: '/ws/project',
             onWebSocketClose: ()=>{
                 console.log('WebSocket closed');
             },
