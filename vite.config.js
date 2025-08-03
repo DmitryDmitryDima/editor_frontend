@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     // "192.168.0.102" -дом
     // "192.168.1.124"
-    host:"192.168.0.102",
+    host:"192.168.1.124",
 
 
     proxy:{
