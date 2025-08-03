@@ -80,6 +80,7 @@ export function AppDashboard() {
 
                 // Дожидаемся преобразования ответа в JSON
                 const result = await response.json();
+                console.log(result);
 
                 setData(result);
             } catch (error) {
