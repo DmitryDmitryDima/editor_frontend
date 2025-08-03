@@ -1,4 +1,4 @@
-import {useNavigate, useParams, useLocation} from "react-router-dom";
+import {useNavigate, useParams, useLocation, Link} from "react-router-dom";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
@@ -43,6 +43,8 @@ function ProjectPage(){
 
     const navigate = useNavigate();
     const location = useLocation();
+
+
 
 
 
@@ -333,6 +335,9 @@ function ProjectPage(){
 
 
 
+
+
+
     // хуки для дерева
     // тут мы конструируем путь до файла, чтобы не заниматься этим на бэке
     //todo данный алгоритм можно оптимизировать, контруируя map ребенок-родитель при запросе дерева с сервера
@@ -464,6 +469,10 @@ function ProjectPage(){
 
     return(
         <div>
+
+            <Link to={`/${user_name}`} style={{color: 'black',
+                textDecoration: 'none',
+                fontSize: '18px'}}>back to {user_name} page </Link>
 
             <p>{project_name} Project</p>
 

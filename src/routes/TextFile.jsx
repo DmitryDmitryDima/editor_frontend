@@ -112,7 +112,7 @@ export function TextFile() {
     const fetchFileData=async ()=>{
 
         try {
-            const api = "/api/tools/editor/readAndCache"
+            const api = "/api/tools/editor/load"
             const body = JSON.stringify({
                 projectname:project_name,
                 username:user_name,
