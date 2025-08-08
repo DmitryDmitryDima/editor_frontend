@@ -7,8 +7,14 @@
  */
 export default function javaBasicCompletions(context) {
     let word = context.matchBefore(/\w*/);
-    console.log(word);
+    // пустой ивент
     if (word.from == word.to && !context.explicit) return null;
+
+    let body = JSON.stringify({
+            text: word.text,
+        }
+    )
+
 
     // Basic Java keywords and common methods
     const keywords = [
@@ -22,13 +28,7 @@ export default function javaBasicCompletions(context) {
         "try", "void", "volatile", "while"
     ];
 
-    /*
-    const commonMethods = [
-        "println", "print", "length", "size", "add", "get", "set", "put",
-        "contains", "equals", "hashCode", "toString"
-    ];
 
-     */
 
 
     // commit test
@@ -43,9 +43,7 @@ export default function javaBasicCompletions(context) {
         options: [
             ...keywords.map(k => ({label: k, type: "keyword"})),
             //...commonMethods.map(m => ({label: m, type: "method"})),
-            ...types.map(t => ({label: t, type: "class"})),
-            {label: "main", type: "method", detail: "main method"},
-            {label: "args", type: "variable", detail: "main method arguments"}
+            ...types.map(t => ({label: t, type: "class"}))
         ]
     };
 }
