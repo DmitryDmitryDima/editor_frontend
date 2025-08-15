@@ -1,8 +1,8 @@
 import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
-import {useCallback, useEffect, useRef, useState} from "react";
-import { autocompletion } from "@codemirror/autocomplete";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import { autocompletion , CompletionContext} from "@codemirror/autocomplete";
 import javaBasicCompletions from "../completions/javaBasicCompletions.js";
 
 import javaDotCompletion from "../completions/javaDotCompletion.js";
@@ -71,6 +71,13 @@ function JavaFile(){
     const update_file_save_event_id = useCallback((new_file_save_event_id) => {
         file_save_event_id.current = new_file_save_event_id;
     }, [])
+
+
+    // организация доступа к данным главного компонента для basic completions
+    const basicCompletionsCallback = useCallback(
+        (context) => javaBasicCompletions(context, data, splat),
+        [data] // Зависимость от data
+    );
 
 
 
@@ -264,6 +271,8 @@ function JavaFile(){
 
 
 
+
+
     // функция, срабатывающая при запросе импортов
     const importRequest = async () => {
         // запрашивем бэк
@@ -386,7 +395,7 @@ function JavaFile(){
 
                             // ТУТ ВСТАВЛЯЕМ ПАРАМЕТРЫ ПОДСКАЗОК - ИЗ ОТДЕЛЬНЫХ ФАЙЛОВ
                             // ФУНКЦИЙ ПОДСКАЗОК МОЖЕТ СКОЛЬКО УГОДНО
-                            autocompletion({override:[javaBasicCompletions,
+                            autocompletion({override:[basicCompletionsCallback,
                                     //snippetCompletions,
                                     javaDotCompletion],
 
