@@ -487,7 +487,7 @@ function ProjectPage(){
 
 
 
-                <IconButton onClick={handleRemovalClick} disabled={focusItem.index === "basic_root"} size="large" >
+                <IconButton onClick={handleRemovalClick} disabled={focusItem.immutable===true} size="large" >
 
                     <DeleteIcon/>
                 </IconButton>
