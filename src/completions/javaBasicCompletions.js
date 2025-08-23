@@ -26,7 +26,9 @@ export default async function javaBasicCompletions(context, data, splat) {
             line:context.state.doc.lineAt(context.pos).number,
             lineStart:context.state.doc.lineAt(context.pos).from, // место для коммента
             project_id:data.project_id, // данные нужны для анализа внешних зависимостей/проекта
-            file_id:data.file_id
+            file_id:data.file_id,
+
+
 
 
 
@@ -43,11 +45,11 @@ export default async function javaBasicCompletions(context, data, splat) {
     });
 
     const completions = await response.json();
-    //console.log(completions);
+    console.log(completions);
 
 
 
-    console.log(body)
+    //console.log(body)
 
 
 

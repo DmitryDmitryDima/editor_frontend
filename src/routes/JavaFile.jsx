@@ -72,7 +72,6 @@ function JavaFile(){
         file_save_event_id.current = new_file_save_event_id;
     }, [])
 
-
     // организация доступа к данным главного компонента для basic completions
     const basicCompletionsCallback = useCallback(
         (context) => javaBasicCompletions(context, data, splat),
