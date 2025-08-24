@@ -70,18 +70,50 @@ export default async function javaBasicCompletions(context, data, splat) {
 
 
     // commit test
-
+    /*
     const types = [
         "String", "Integer", "Double", "Float", "Boolean", "Object",
         "List", "ArrayList", "Map", "HashMap", "Set", "HashSet"
     ];
+
+     */
+
+
+
 
     return {
         from: word.from,
         options: [
             ...keywords.map(k => ({label: k, type: "keyword"})),
             //...commonMethods.map(m => ({label: m, type: "method"})),
-            ...types.map(t => ({label: t, type: "class"}))
+            ...completions.outerTypes.map(t => ({
+                label: t.name,
+                type: "class",
+                detail:t.packageWay,
+                apply: (view, completion, from, to) => {
+                    // при выборе подсказки
+                    // Базовое поведение - вставка текста
+                    view.dispatch({
+                        changes: {from, to, insert: completion.label}
+                    });
+
+
+                    let importStatement = "\nimport "+completion.detail+"."+completion.label+";"
+                    console.log(importStatement)
+                    // Находим позицию для вставки import (после package declaration)
+                    const doc = view.state.doc.toString();
+                    const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
+                    if (packageMatch) {
+                        const importPos = packageMatch.index + packageMatch[0].length;
+                        if (!doc.match(importStatement)){
+                            view.dispatch({
+                                changes: {from: importPos, insert: importStatement}
+                            });
+                        }
+
+                    }
+                }
+                }))
         ]
     };
 }

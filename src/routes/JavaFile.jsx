@@ -1,9 +1,10 @@
 import CodeMirror, { EditorView } from '@uiw/react-codemirror';
 import { java } from '@codemirror/lang-java';
 import { oneDark } from '@codemirror/theme-one-dark';
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import { autocompletion , CompletionContext} from "@codemirror/autocomplete";
 import javaBasicCompletions from "../completions/javaBasicCompletions.js";
+
 
 import javaDotCompletion from "../completions/javaDotCompletion.js";
 import {ghostTextExtension} from "../completions/ghostArgs.js";
@@ -390,6 +391,8 @@ function JavaFile(){
                         extensions={[java(),
                             //EditorView.lineWrapping,
                             ghostTextExtension,
+
+
 
 
                             // ТУТ ВСТАВЛЯЕМ ПАРАМЕТРЫ ПОДСКАЗОК - ИЗ ОТДЕЛЬНЫХ ФАЙЛОВ
