@@ -54,29 +54,12 @@ export default async function javaBasicCompletions(context, data, splat) {
 
 
 
-    // Basic Java keywords and common methods
-    const keywords = [
-        "abstract", "assert", "boolean", "break", "byte", "case", "catch",
-        "char", "class", "const", "continue", "default", "do", "double",
-        "else", "enum", "extends", "final", "finally", "float", "for",
-        "if", "implements", "import", "instanceof", "int", "interface",
-        "long", "native", "new", "package", "private", "protected",
-        "public", "return", "short", "static", "strictfp", "super",
-        "switch", "synchronized", "this", "throw", "throws", "transient",
-        "try", "void", "volatile", "while"
-    ];
 
 
 
 
-    // commit test
-    /*
-    const types = [
-        "String", "Integer", "Double", "Float", "Boolean", "Object",
-        "List", "ArrayList", "Map", "HashMap", "Set", "HashSet"
-    ];
 
-     */
+
 
 
 
@@ -84,8 +67,10 @@ export default async function javaBasicCompletions(context, data, splat) {
     return {
         from: word.from,
         options: [
-            ...keywords.map(k => ({label: k, type: "keyword"})),
-            //...commonMethods.map(m => ({label: m, type: "method"})),
+            ...completions.contextBasedInfo.keywords.map(k => ({label: k, type: "keyword"})),
+            ...completions.contextBasedInfo.methods.map(k => ({label: k, type: "method"})),
+            ...completions.contextBasedInfo.localVariables.map(k => ({label: k, type: "variable"})),
+            ...completions.contextBasedInfo.fields.map(k => ({label: k, type: "variable"})),
             ...completions.outerTypes.map(t => ({
                 label: t.name,
                 type: "class",
@@ -97,21 +82,23 @@ export default async function javaBasicCompletions(context, data, splat) {
                         changes: {from, to, insert: completion.label}
                     });
 
+                    if (completion.detail!=null){
+                        let importStatement = "\nimport "+completion.detail+"."+completion.label+";"
+                        console.log(importStatement)
+                        // Находим позицию для вставки import (после package declaration)
+                        const doc = view.state.doc.toString();
+                        const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
+                        if (packageMatch) {
+                            const importPos = packageMatch.index + packageMatch[0].length;
+                            if (!doc.match(importStatement)){
+                                view.dispatch({
+                                    changes: {from: importPos, insert: importStatement}
+                                });
+                            }
 
-                    let importStatement = "\nimport "+completion.detail+"."+completion.label+";"
-                    console.log(importStatement)
-                    // Находим позицию для вставки import (после package declaration)
-                    const doc = view.state.doc.toString();
-                    const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
-                    if (packageMatch) {
-                        const importPos = packageMatch.index + packageMatch[0].length;
-                        if (!doc.match(importStatement)){
-                            view.dispatch({
-                                changes: {from: importPos, insert: importStatement}
-                            });
                         }
-
                     }
+
                 }
                 }))
         ]
