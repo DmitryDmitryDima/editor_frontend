@@ -1,6 +1,6 @@
 
 
-export default async function  javaDotCompletion (context) {
+export default async function  javaDotCompletions (context, data) {
 
 
     const before = context.matchBefore(/[\w.]*$/); // часть, записанная после последней точки
@@ -24,7 +24,7 @@ export default async function  javaDotCompletion (context) {
 
 
 
-    const way = "/api/editor/suggest/dot";
+    const way = "/api/tools/editor/completions/dot";
 
     //console.log(expression + ' expression');
 
@@ -46,7 +46,9 @@ export default async function  javaDotCompletion (context) {
             expression:expression,
             position:context.pos,
             line:line.number,
-            column:context.pos - line.from
+            column:context.pos - line.from,
+            project_id:data.project_id,
+            file_id:data.file_id,
 
         })
     });

@@ -235,6 +235,12 @@ export function TextFile() {
 
             console.log(evt.event_id);
             console.log(file_save_event_id.current);
+
+            /*
+            обновляем содержимое редактора в случае,
+            если мы не являемся автором события - авторство события мы фиксируем по file_save_event_id
+
+             */
             if (evt.file_id!==file_save_event_id.current){
                 fetchFileData()
 

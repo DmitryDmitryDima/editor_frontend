@@ -6,7 +6,7 @@ import { autocompletion , CompletionContext} from "@codemirror/autocomplete";
 import javaBasicCompletions from "../completions/javaBasicCompletions.js";
 
 
-import javaDotCompletion from "../completions/javaDotCompletion.js";
+import javaDotCompletions from "../completions/javaDotCompletions.js";
 import {ghostTextExtension} from "../completions/ghostArgs.js";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 
@@ -78,6 +78,11 @@ function JavaFile(){
         (context) => javaBasicCompletions(context, data, splat),
         [data] // Зависимость от data
     );
+
+    // организация доступа к данным главного компонента для dot completions
+    const dotCompletionsCallback = useCallback(
+        (context) => javaDotCompletions(context, data),[data]
+    )
 
 
 
@@ -398,8 +403,8 @@ function JavaFile(){
                             // ТУТ ВСТАВЛЯЕМ ПАРАМЕТРЫ ПОДСКАЗОК - ИЗ ОТДЕЛЬНЫХ ФАЙЛОВ
                             // ФУНКЦИЙ ПОДСКАЗОК МОЖЕТ СКОЛЬКО УГОДНО
                             autocompletion({override:[basicCompletionsCallback,
-                                    //snippetCompletions,
-                                    javaDotCompletion],
+
+                                    dotCompletionsCallback],
 
                                 activateOnTyping: true,
                                 defaultKeymap:true

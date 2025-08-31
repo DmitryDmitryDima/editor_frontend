@@ -5,7 +5,7 @@ import {useState} from "react";
 import { autocompletion } from "@codemirror/autocomplete";
 import javaBasicCompletions from "../completions/javaBasicCompletions.js";
 
-import javaDotCompletion from "../completions/javaDotCompletion.js";
+import javaDotCompletions from "../completions/javaDotCompletions.js";
 import {ghostTextExtension} from "../completions/ghostArgs.js";
 import {useParams} from "react-router-dom";
 
@@ -144,7 +144,7 @@ function File(){
                             // ФУНКЦИЙ ПОДСКАЗОК МОЖЕТ СКОЛЬКО УГОДНО
                             autocompletion({override:[javaBasicCompletions,
                                     //snippetCompletions,
-                                    javaDotCompletion],
+                                    javaDotCompletions],
 
                                 activateOnTyping: true,
                                 defaultKeymap:true

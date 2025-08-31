@@ -68,10 +68,10 @@ export default async function javaBasicCompletions(context, data, splat) {
         from: word.from,
         options: [
             ...completions.contextBasedInfo.keywords.map(k => ({label: k, type: "keyword"})),
-            ...completions.contextBasedInfo.methods.map(k => ({label: k, type: "method"})),
+            ...completions.contextBasedInfo.methods.map(k => ({label: k, type: "method", apply:k+"()"})),
             ...completions.contextBasedInfo.localVariables.map(k => ({label: k, type: "variable"})),
             ...completions.contextBasedInfo.fields.map(k => ({label: k, type: "variable"})),
-            ...completions.outerTypes.map(t => ({
+            ...completions.projectTypes.map(t => ({
                 label: t.name,
                 type: "class",
                 detail:t.packageWay,
@@ -100,6 +100,36 @@ export default async function javaBasicCompletions(context, data, splat) {
                     }
 
                 }
+                })),
+                ...completions.outerTypes.map(t => ({
+                    label: t.name,
+                    type: "class",
+                    detail:t.packageWay,
+                    apply: (view, completion, from, to) => {
+                        // при выборе подсказки
+                        // Базовое поведение - вставка текста
+                        view.dispatch({
+                            changes: {from, to, insert: completion.label}
+                        });
+
+                        if (completion.detail!=null){
+                            let importStatement = "\nimport "+completion.detail+"."+completion.label+";"
+                            console.log(importStatement)
+                            // Находим позицию для вставки import (после package declaration)
+                            const doc = view.state.doc.toString();
+                            const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
+                            if (packageMatch) {
+                                const importPos = packageMatch.index + packageMatch[0].length;
+                                if (!doc.match(importStatement)){
+                                    view.dispatch({
+                                        changes: {from: importPos, insert: importStatement}
+                                    });
+                                }
+
+                            }
+                        }
+
+                    }
                 }))
         ]
     };

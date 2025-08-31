@@ -1,5 +1,5 @@
 import {useNavigate, useParams, useLocation, Link} from "react-router-dom";
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment} from "react-complex-tree";
 import 'react-complex-tree/lib/style-modern.css';
 import {Button, ButtonGroup, IconButton, Snackbar} from "@mui/material";
@@ -279,7 +279,8 @@ function ProjectPage(){
                 client.subscribe('/projects/'+id, (message) => {
                     const update = JSON.parse(message.body);
                     // Обработка входящих сообщений
-                    console.log(update)
+                    handleWebSocketEvent(update)
+
                 });
             },
             onStompError: (frame) => {
@@ -314,6 +315,21 @@ function ProjectPage(){
 
 
     }, [location.pathname]);
+
+
+    // ивенты вебсокета
+    const handleWebSocketEvent = useCallback((evt) => {
+        if (evt.type === 'FILE_SAVE') {
+
+            console.log(evt.event_id);
+
+
+
+
+
+
+        }
+    }, []);
 
 
 
