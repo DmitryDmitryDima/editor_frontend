@@ -12,6 +12,7 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 
 import { Client } from '@stomp/stompjs';
 import { v4 as uuid } from 'uuid';
+import {Button} from "@mui/material";
 
 function JavaFile(){
 
@@ -278,15 +279,16 @@ function JavaFile(){
 
 
 
-    // функция, срабатывающая при запросе импортов
-    const importRequest = async () => {
+    // функция, срабатывающая при попытке сделать файл главным
+    const setEntryPointRequest = async () => {
         // запрашивем бэк
-        const response = await fetch("/api/editor/suggest/import", {
+        const response = await fetch("/api/tools/execution/java/setEntryPoint", {
             method: "POST",
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
 
-                code: data.content,
+                projectId:data.project_id,
+                fileId:data.file_id
 
 
             })
@@ -296,19 +298,7 @@ function JavaFile(){
             throw new Error(response.statusText)
 
         }
-        const result = await response.json();
-        console.log(result);
-
-
-        let portion = "";
-        result.imports.forEach((item) => {
-            portion+=item+"\n";
-        })
-
-        setData(prevData => ({
-            ...prevData,
-            content: portion+prevData.content
-        }));
+        console.log("entry point changed")
 
 
 
@@ -381,10 +371,10 @@ function JavaFile(){
 
 
             <div className="toolbar">
-                <button className="panelbutton" onClick={runCode}>Run</button>
-                <button className="panelbutton" onClick={saveFileData}>Save</button>
-                <button className="panelbutton" onClick={importRequest}>Import</button>
-                <button className="panelbutton" onClick={handleProjectButtonClick}>Project</button>
+                <Button className="panelbutton" onClick={runCode}>Запустить проект</Button>
+                <Button className="panelbutton" onClick={saveFileData}>Сохранить</Button>
+                <Button className="panelbutton" onClick={setEntryPointRequest}>Сделать главным</Button>
+                <Button className="panelbutton" onClick={handleProjectButtonClick}>К проекту</Button>
             </div>
 
             <div className = 'editorwrapper'>
