@@ -295,7 +295,7 @@ function JavaFile(){
         })
 
         if (!response.ok) {
-            throw new Error(response.statusText)
+            throw new Error(response.message)
 
         }
         console.log("entry point changed")
@@ -305,35 +305,31 @@ function JavaFile(){
     }
 
 
-    // функция, срабатывающая при запуске кода
     const runCode = async () => {
         try {
-            // добавляем к предыдущему состояние новое - будет полезно при многоступенчатом ответе сервера
-            setOutput(prev =>
-                prev+" compiling code...")
+            setOutput(prev => prev + " compiling code...");
 
-
-
-
-            // запрашивем бэк
-            const response = await fetch("/api/editor/run", {
+            const response = await fetch("/api/tools/execution/java/run", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-
-                    code: data.content,
-                    screenWidth: window.innerWidth
-
-
+                    projectId: data.project_id,
                 })
-            })
-            if (!response.ok) {
-                throw new Error(response.statusText)
+            });
 
-            }
             const result = await response.json();
 
+            if (!response.ok) {
+                // Пытаемся получить сообщение из разных возможных мест
+                const errorMessage =
+                    result.message ||
+                    result.error ||
+                    result.details ||
+                    response.statusText ||
+                    `HTTP error ${response.status}`;
 
+                throw new Error(errorMessage);
+            }
 
             setOutput(prev => prev +
                 "> Output:\n" +
@@ -343,16 +339,13 @@ function JavaFile(){
             );
         }
         catch (err) {
-            console.log(err)
-
+            console.log("Full error:", err);
             setOutput(prev => prev +
                 "> Error occurred:\n" +
                 err.message + "\n\n"
             );
         }
-
-
-    };
+    }
 
     const clearOutput = () => {
         setOutput("");
