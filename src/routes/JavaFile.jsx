@@ -156,15 +156,23 @@ function JavaFile(){
             },
             onConnect: () => {
                 console.log('WebSocket connected, process subscribe');
-                // подписка на общий канал проекта
-
-
+                // подписка на общий канал файла
                 client.subscribe('/projects/'+project_id+'/'+file_id, (message) => {
 
                     const update = JSON.parse(message.body);
-                    console.log(update);
-                    handleWebSocketEvent(update);
+                    //console.log(update);
+                    handleWebSocketFileSpecificEvent(update);
                 });
+                // подписка на общий канал проекта
+                client.subscribe('/projects/'+project_id, (message) => {
+
+                    const update = JSON.parse(message.body);
+                    //console.log(update);
+                    handleWebSocketProjectEvent(update);
+                });
+
+
+
             },
             onStompError: (frame) => {
                 console.error('WebSocket error:', frame.headers.message);
@@ -200,7 +208,7 @@ function JavaFile(){
 
 
     // ивенты вебсокета
-    const handleWebSocketEvent = useCallback((evt) => {
+    const handleWebSocketFileSpecificEvent = useCallback((evt) => {
         if (evt.type === 'FILE_SAVE') {
 
             console.log(evt.event_id);
@@ -214,6 +222,13 @@ function JavaFile(){
 
         }
     }, [file_save_event_id]);
+
+    const handleWebSocketProjectEvent = useCallback((evt) => {
+
+        setOutput(prevState => prevState+"\n"+evt.message);
+    }, []);
+
+
 
 
 
@@ -304,10 +319,46 @@ function JavaFile(){
 
     }
 
-
-    const runCode = async () => {
+    const stopProject = async () => {
         try {
-            setOutput(prev => prev + " compiling code...");
+            //setOutput(prev => prev + " compiling code...");
+
+            const response = await fetch("/api/tools/execution/java/stop", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    projectId: data.project_id,
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Пытаемся получить сообщение из разных возможных мест
+                const errorMessage =
+                    result.message ||
+                    result.error ||
+                    result.details ||
+                    response.statusText ||
+                    `HTTP error ${response.status}`;
+
+                throw new Error(errorMessage);
+            }
+
+
+        }
+        catch (err) {
+            console.log("Full error:", err);
+
+        }
+    }
+
+
+
+
+    const runProject = async () => {
+        try {
+            //setOutput(prev => prev + " compiling code...");
 
             const response = await fetch("/api/tools/execution/java/run", {
                 method: "POST",
@@ -331,19 +382,11 @@ function JavaFile(){
                 throw new Error(errorMessage);
             }
 
-            setOutput(prev => prev +
-                "> Output:\n" +
-                (result.message || "No output") + "\n\n" +
-                (result.error ? "> Errors:\n" + result.error + "\n" : "") +
-                "> Process finished.\n\n"
-            );
+
         }
         catch (err) {
             console.log("Full error:", err);
-            setOutput(prev => prev +
-                "> Error occurred:\n" +
-                err.message + "\n\n"
-            );
+
         }
     }
 
@@ -364,7 +407,8 @@ function JavaFile(){
 
 
             <div className="toolbar">
-                <Button className="panelbutton" onClick={runCode}>Запустить проект</Button>
+                <Button className="panelbutton" onClick={runProject}>Запуск</Button>
+                <Button className="panelbutton" onClick={stopProject}>Стоп</Button>
                 <Button className="panelbutton" onClick={saveFileData}>Сохранить</Button>
                 <Button className="panelbutton" onClick={setEntryPointRequest}>Сделать главным</Button>
                 <Button className="panelbutton" onClick={handleProjectButtonClick}>К проекту</Button>

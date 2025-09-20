@@ -193,7 +193,15 @@ export function TextFile() {
 
                     const update = JSON.parse(message.body);
                     console.log(update);
-                    handleWebSocketEvent(update);
+                    handleWebSocketFileSpecificEvent(update);
+                });
+
+                // подписка на общий канал проекта
+                client.subscribe('/projects/'+project_id, (message) => {
+
+                    const update = JSON.parse(message.body);
+                    //console.log(update);
+                    handleWebSocketProjectEvent(update);
                 });
             },
             onStompError: (frame) => {
@@ -230,7 +238,7 @@ export function TextFile() {
 
 
     // ивенты вебсокета
-    const handleWebSocketEvent = useCallback((evt) => {
+    const handleWebSocketFileSpecificEvent = useCallback((evt) => {
         if (evt.type === 'FILE_SAVE') {
 
             console.log(evt.event_id);
@@ -250,6 +258,10 @@ export function TextFile() {
 
         }
     }, [file_save_event_id]);
+
+    const handleWebSocketProjectEvent = useCallback((evt) => {
+        console.log(evt);
+    }, []);
 
 
 
