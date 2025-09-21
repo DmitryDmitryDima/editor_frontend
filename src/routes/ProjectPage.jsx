@@ -16,6 +16,8 @@ import {
     FileCreationDialog,
     FileRemovalDialog
 } from "./ProjectPageComponents.jsx";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
 
 
 
@@ -319,6 +321,7 @@ function ProjectPage(){
 
     // ивенты вебсокета
     const handleWebSocketEvent = useCallback((evt) => {
+        console.log(evt)
         if (evt.type === 'FILE_SAVE') {
 
             console.log(evt.event_id);
@@ -460,8 +463,79 @@ function ProjectPage(){
 
 
 
+
+
+
     const handleSelection = (selectedItems)=>{
 
+    }
+
+    const stopProject = async () => {
+        try {
+            //setOutput(prev => prev + " compiling code...");
+
+            const response = await fetch("/api/tools/execution/java/stop", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    projectId: data.id,
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Пытаемся получить сообщение из разных возможных мест
+                const errorMessage =
+                    result.message ||
+                    result.error ||
+                    result.details ||
+                    response.statusText ||
+                    `HTTP error ${response.status}`;
+
+                throw new Error(errorMessage);
+            }
+
+
+        }
+        catch (err) {
+            console.log("Full error:", err);
+
+        }
+    }
+
+    const runProject = async () => {
+        try {
+            //setOutput(prev => prev + " compiling code...");
+
+            const response = await fetch("/api/tools/execution/java/run", {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    projectId: data.id,
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                // Пытаемся получить сообщение из разных возможных мест
+                const errorMessage =
+                    result.message ||
+                    result.error ||
+                    result.details ||
+                    response.statusText ||
+                    `HTTP error ${response.status}`;
+
+                throw new Error(errorMessage);
+            }
+
+
+        }
+        catch (err) {
+            console.log("Full error:", err);
+
+        }
     }
 
 
@@ -511,6 +585,14 @@ function ProjectPage(){
                 <IconButton onClick={handleFileOpenClick} disabled={focusItem.isFolder} size="large" >
 
                     <FileOpenIcon/>
+                </IconButton>
+
+                <IconButton onClick={runProject}>
+                    <PlayArrowIcon/>
+                </IconButton>
+
+                <IconButton onClick={stopProject}>
+                    <StopIcon/>
                 </IconButton>
 
 

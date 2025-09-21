@@ -12,8 +12,9 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 
 import { Client } from '@stomp/stompjs';
 import { v4 as uuid } from 'uuid';
-import {Button} from "@mui/material";
-
+import {Button, ButtonGroup, IconButton, TextField} from "@mui/material";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
 function JavaFile(){
 
     // параметры, необходимые для начального fetch
@@ -406,13 +407,18 @@ function JavaFile(){
 
 
 
-            <div className="toolbar">
-                <Button className="panelbutton" onClick={runProject}>Запуск</Button>
-                <Button className="panelbutton" onClick={stopProject}>Стоп</Button>
+            <ButtonGroup variant="contained" size="small">
+                <IconButton className="panelbutton" onClick={runProject}>
+                    <PlayArrowIcon />
+
+                </IconButton>
+                <IconButton className="panelbutton" onClick={stopProject}>
+                    <StopIcon/>
+                </IconButton>
                 <Button className="panelbutton" onClick={saveFileData}>Сохранить</Button>
                 <Button className="panelbutton" onClick={setEntryPointRequest}>Сделать главным</Button>
                 <Button className="panelbutton" onClick={handleProjectButtonClick}>К проекту</Button>
-            </div>
+            </ButtonGroup>
 
             <div className = 'editorwrapper'>
                 <div className = "editor">
@@ -443,6 +449,8 @@ function JavaFile(){
                 </div>
             </div>
 
+
+
             <div className="output-panel">
                 <div className="output-header">
                     <h2>Output</h2>
@@ -450,6 +458,8 @@ function JavaFile(){
                 </div>
                 <pre className="output-content">{output || "No output yet. Click 'Run' to execute your code."}</pre>
             </div>
+
+
 
 
 
