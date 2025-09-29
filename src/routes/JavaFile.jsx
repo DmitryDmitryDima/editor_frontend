@@ -12,9 +12,12 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 
 import { Client } from '@stomp/stompjs';
 import { v4 as uuid } from 'uuid';
-import {Button, ButtonGroup, IconButton, TextField} from "@mui/material";
+import {Button, ButtonGroup, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
+import Paper from '@mui/material/Paper';
+import List from '@mui/material/List';
+
 function JavaFile(){
 
     // параметры, необходимые для начального fetch
@@ -35,8 +38,17 @@ function JavaFile(){
 
 
 
-    // содержимое консоли
-    const [output, setOutput] = useState("");
+
+
+    const [consoleItems, setConsoleItems] = useState([]);
+    const listContainerRef = useRef(null);
+
+    useEffect(() => {
+        const container = listContainerRef.current;
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }, [consoleItems]);
 
 
 
@@ -110,6 +122,12 @@ function JavaFile(){
             console.log(jsonData);
 
             setData(jsonData);
+
+            if (jsonData.running){
+
+                setConsoleItems(jsonData.projectLogLines.map(logLine => {return {id:Date.now(), text:logLine}}))
+
+            }
 
 
 
@@ -226,7 +244,11 @@ function JavaFile(){
 
     const handleWebSocketProjectEvent = useCallback((evt) => {
 
-        setOutput(prevState => prevState+"\n"+evt.message);
+
+        setConsoleItems(prevItems => [...prevItems, {
+            id: Date.now(),
+            text: evt.message
+        }]);
     }, []);
 
 
@@ -392,7 +414,7 @@ function JavaFile(){
     }
 
     const clearOutput = () => {
-        setOutput("");
+        setConsoleItems([])
     };
 
 
@@ -456,8 +478,38 @@ function JavaFile(){
                     <h2>Output</h2>
                     <button className="clear-button" onClick={clearOutput}>Clear</button>
                 </div>
-                <pre className="output-content">{output || "No output yet. Click 'Run' to execute your code."}</pre>
             </div>
+
+            <Paper  ref={listContainerRef} style={{maxHeight: 200, overflow: 'auto'}}>
+                <List>
+
+                    {consoleItems.map((item) => {
+                        return (
+                            <ListItem key={item.id}>
+                                <ListItemText
+                                    slotProps={{
+                                        primary: {
+                                            fontSize: 12,
+                                            fontWeight: 'medium',
+                                            letterSpacing: 0,
+                                        }
+                                    }}
+                                    primary={item.text}
+                                />
+                            </ListItem>
+                        );
+                    })}
+
+
+
+
+
+
+
+
+
+                </List>
+            </Paper>
 
 
 

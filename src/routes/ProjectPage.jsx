@@ -252,6 +252,7 @@ function ProjectPage(){
 
 
             console.log("data fetched and changed");
+            console.log(jsonData);
 
             initWebSocketConnection(jsonData.id) // в случае успеха
 
