@@ -373,7 +373,7 @@ function ProjectPage(){
 
         if (focusItem.index.startsWith("file")){
             // редактор доступен только для файла
-            let basic_way = "/"+user_name+"/projects/";
+            let basic_way = "/users/"+user_name+"/projects/";
             let constructed_way = [];
 
 
@@ -561,7 +561,7 @@ function ProjectPage(){
     return(
         <div>
 
-            <Link to={`/${user_name}`} style={{color: 'black',
+            <Link to={`/users/${user_name}`} style={{color: 'black',
                 textDecoration: 'none',
                 fontSize: '18px'}}>back to {user_name} page </Link>
 

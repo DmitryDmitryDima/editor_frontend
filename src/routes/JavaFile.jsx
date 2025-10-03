@@ -54,7 +54,7 @@ function JavaFile(){
 
 
     // путь к проекту
-    const projectLink = "/"+user_name+"/projects/"+project_name;
+    const projectLink = "/users/"+user_name+"/projects/"+project_name;
 
 
 

@@ -176,7 +176,8 @@ export function CreationDialog(props){
         const formJson = Object.fromEntries(formData.entries());
         const name = formJson.project_name;
 
-        const apiPath = "api/users/"+user_name+"/createProject/"+name;
+        const apiPath = "/api/users/"+user_name+"/createProject/"+name;
+        console.log("apiPath", apiPath);
         const creating = async () => {
             try {
                 const response = await fetch(apiPath, {method:"POST"});

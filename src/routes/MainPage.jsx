@@ -4,7 +4,7 @@ function MainPage() {
     return <div>
         <p>Registration, authorization or redirect to authorized page will be here</p>
 
-        <Link to="/dima" style={{color: 'black',
+        <Link to="/users/dima" style={{color: 'black',
             textDecoration: 'none',
             fontSize: '18px'}}>Test user page link</Link>
 
