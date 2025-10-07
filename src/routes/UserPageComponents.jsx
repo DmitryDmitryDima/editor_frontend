@@ -63,6 +63,7 @@ export function SimpleDialogDelete(props){
 
     // если мы нажимаем нет - закрываем диалог, передавая в родительский компонент значение
     const handleListItemClickNo = ()=>{
+        console.log(selectedValue)
         onClose("Cancel deleting")
     }
 
@@ -76,11 +77,14 @@ export function SimpleDialogDelete(props){
 
 
         // api call - пробуем удалить
-        const apiPath = "api/users/"+user_name+"/deleteProject/java/"+selectedValue;
+        const apiPath = "/api/users/"+user_name+"/deleteProject/java";
 
         const deleting = async () => {
             try {
-                const response = await fetch(apiPath, {method:"POST"});
+                const body = JSON.stringify({
+                    projectId: selectedValue
+                })
+                const response = await fetch(apiPath, {method:"DELETE", body: body, headers: {'Content-Type': 'application/json'}});
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -176,11 +180,14 @@ export function CreationDialog(props){
         const formJson = Object.fromEntries(formData.entries());
         const name = formJson.project_name;
 
-        const apiPath = "/api/users/"+user_name+"/createProject/java/"+name;
+        const apiPath = "/api/users/"+user_name+"/createProject/java";
+        const body = JSON.stringify({
+            projectName:name
+        })
         console.log("apiPath", apiPath);
         const creating = async () => {
             try {
-                const response = await fetch(apiPath, {method:"POST"});
+                const response = await fetch(apiPath, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
