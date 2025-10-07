@@ -33,7 +33,7 @@ export function FileRemovalDialog(props){
     const deleting = async () => {
 
         const parentIndex = parentData.index;
-        const apiPath = `/api/users/${user_name}/projects/${project_name}/removeFile/${parentIndex}`
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeFile/${parentIndex}`
 
         try {
             const response = await fetch(apiPath, {method:"POST"});
@@ -101,7 +101,7 @@ export function DirectoryRemovalDialog(props) {
     const deleting = async () => {
 
         const parentIndex = parentData.index;
-        const apiPath = `/api/users/${user_name}/projects/${project_name}/removeDirectory/${parentIndex}`
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeDirectory/${parentIndex}`
         
         try {
             const response = await fetch(apiPath, {method:"POST"});
@@ -165,7 +165,7 @@ export function FileCreationDialog(props) {
 
         const parentIndex = parentData.index;
         // посылаем имя и расширение создаваемого файла. Проверки - на стороне сервера
-        const apiPath = `/api/users/${user_name}/projects/${project_name}/createFile/${parentIndex}/${fileName}.${extension}`;
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createFile/${parentIndex}/${fileName}.${extension}`;
 
         const createFile = async () => {
             try {
@@ -272,7 +272,7 @@ export function DirectoryCreationDialog(props){
         const parentIndex = parentData.index;
 
 
-        const apiPath = `/api/users/${user_name}/projects/${project_name}/createDirectory/${parentIndex}/${suggestion}`;
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createDirectory/${parentIndex}/${suggestion}`;
 
         const createDirectory = async () => {
             try {

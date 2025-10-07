@@ -210,7 +210,7 @@ function ProjectPage(){
     // функция запроса информации с сервера - в данной версии это происходит после каждого из изменений
 
 
-    const apiPath = "/api/users/"+user_name+"/projects/"+project_name;
+    const apiPath = "/api/users/"+user_name+"/projects/java/"+project_name;
 
 
 
@@ -270,7 +270,7 @@ function ProjectPage(){
         if (stompClientRef.current) return;
 
         const client = new Client({
-            brokerURL: '/ws/project',
+            brokerURL: '/ws/project/java',
             onWebSocketClose: ()=>{
                 console.log('WebSocket closed');
             },
@@ -279,7 +279,7 @@ function ProjectPage(){
                 // подписка на общий канал проекта
 
 
-                client.subscribe('/projects/'+id, (message) => {
+                client.subscribe('/projects/java/'+id, (message) => {
                     const update = JSON.parse(message.body);
                     // Обработка входящих сообщений
                     handleWebSocketEvent(update)
@@ -373,7 +373,7 @@ function ProjectPage(){
 
         if (focusItem.index.startsWith("file")){
             // редактор доступен только для файла
-            let basic_way = "/users/"+user_name+"/projects/";
+            let basic_way = "/users/"+user_name+"/projects/java/";
             let constructed_way = [];
 
 
@@ -475,7 +475,7 @@ function ProjectPage(){
         try {
             //setOutput(prev => prev + " compiling code...");
 
-            const response = await fetch("/api/tools/execution/java/stop", {
+            const response = await fetch("/api/tools/java/execution/stop", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -509,7 +509,7 @@ function ProjectPage(){
         try {
             //setOutput(prev => prev + " compiling code...");
 
-            const response = await fetch("/api/tools/execution/java/run", {
+            const response = await fetch("/api/tools/java/execution/run", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({

@@ -133,7 +133,7 @@ function UserPage(){
                         <div style={{
                             border:"1px solid black"
                         }}>
-                        <Link to={"/users/"+user_name+"/projects/"+project.name} style={{color: 'black',
+                        <Link to={"/users/"+user_name+"/projects/java/"+project.name} style={{color: 'black',
                             textDecoration: 'underline',
                             fontSize: '18px'
                         }}>{project.name}</Link>

@@ -76,7 +76,7 @@ export function TextFile() {
 
 
     // путь к проекту
-    const projectLink = "/users/"+user_name+"/projects/"+project_name;
+    const projectLink = "/users/"+user_name+"/projects/java/"+project_name;
 
     // вебсокет клиент
     const stompClientRef = useRef(null);
@@ -112,7 +112,7 @@ export function TextFile() {
     const fetchFileData=async ()=>{
 
         try {
-            const api = "/api/tools/editor/load"
+            const api = "/api/tools/java/editor/load"
             const body = JSON.stringify({
                 projectname:project_name,
                 username:user_name,
@@ -180,7 +180,7 @@ export function TextFile() {
 
         const client = new Client({
             // old 'ws://localhost:8080/ws/project'
-            brokerURL: '/ws/project',
+            brokerURL: '/ws/project/java',
             onWebSocketClose: ()=>{
                 console.log('WebSocket closed');
             },
@@ -189,7 +189,7 @@ export function TextFile() {
                 // подписка на общий канал проекта
 
 
-                client.subscribe('/projects/'+project_id+'/'+file_id, (message) => {
+                client.subscribe('/projects/java/'+project_id+'/'+file_id, (message) => {
 
                     const update = JSON.parse(message.body);
                     console.log(update);
@@ -197,7 +197,7 @@ export function TextFile() {
                 });
 
                 // подписка на общий канал проекта
-                client.subscribe('/projects/'+project_id, (message) => {
+                client.subscribe('/projects/java/'+project_id, (message) => {
 
                     const update = JSON.parse(message.body);
                     //console.log(update);
@@ -286,7 +286,7 @@ export function TextFile() {
 
 
 
-            const api = "/api/tools/editor/save"
+            const api = "/api/tools/java/editor/save"
             const body = JSON.stringify({
                 content: Node.string(editor),
                 file_id:data.file_id,

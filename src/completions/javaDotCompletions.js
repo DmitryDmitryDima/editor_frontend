@@ -24,7 +24,7 @@ export default async function  javaDotCompletions (context, data) {
 
 
 
-    const way = "/api/tools/editor/completions/dot";
+    const way = "/api/tools/java/editor/completions/dot";
 
     //console.log(expression + ' expression');
 

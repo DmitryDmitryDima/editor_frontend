@@ -76,7 +76,7 @@ export function SimpleDialogDelete(props){
 
 
         // api call - пробуем удалить
-        const apiPath = "api/users/"+user_name+"/deleteProject/"+selectedValue;
+        const apiPath = "api/users/"+user_name+"/deleteProject/java/"+selectedValue;
 
         const deleting = async () => {
             try {
@@ -176,7 +176,7 @@ export function CreationDialog(props){
         const formJson = Object.fromEntries(formData.entries());
         const name = formJson.project_name;
 
-        const apiPath = "/api/users/"+user_name+"/createProject/"+name;
+        const apiPath = "/api/users/"+user_name+"/createProject/java/"+name;
         console.log("apiPath", apiPath);
         const creating = async () => {
             try {

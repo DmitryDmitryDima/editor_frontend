@@ -38,7 +38,7 @@ export default async function javaBasicCompletions(context, data, splat) {
 
 
     // запрос на бэк
-    const response = await fetch("/api/tools/editor/completions/basic", {
+    const response = await fetch("/api/tools/java/editor/completions/basic", {
         method: "POST",
         headers: {'Content-Type': 'application/json'},
         body: body

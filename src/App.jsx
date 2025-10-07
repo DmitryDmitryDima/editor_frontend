@@ -17,9 +17,9 @@ function App() {
                     <Route path="/app/dashboard" element={<AppDashboard/>} />
                     <Route path="/" element={<MainPage />} />
                     <Route path="/users/:user_name" element={<UserPage />} />
-                    <Route path="/users/:user_name/projects/:project_name/*" element={<EditorHandler />} />
+                    <Route path="/users/:user_name/projects/java/:project_name/*" element={<EditorHandler />} />
 
-                    <Route path="/users/:user_name/projects/:project_name/" element={<ProjectPage />} />
+                    <Route path="/users/:user_name/projects/java/:project_name/" element={<ProjectPage />} />
 
 
                 </Routes>

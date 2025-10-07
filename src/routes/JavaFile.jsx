@@ -54,7 +54,7 @@ function JavaFile(){
 
 
     // путь к проекту
-    const projectLink = "/users/"+user_name+"/projects/"+project_name;
+    const projectLink = "/users/"+user_name+"/projects/java/"+project_name;
 
 
 
@@ -104,7 +104,7 @@ function JavaFile(){
     const fetchFileData=async ()=>{
 
         try {
-            const api = "/api/tools/editor/load"
+            const api = "/api/tools/java/editor/load"
             const body = JSON.stringify({
                 projectname:project_name,
                 username:user_name,
@@ -169,7 +169,7 @@ function JavaFile(){
 
         const client = new Client({
             // old 'ws://localhost:8080/ws/project'
-            brokerURL: '/ws/project',
+            brokerURL: '/ws/project/java',
             onWebSocketClose: ()=>{
                 console.log('WebSocket closed');
             },
@@ -183,7 +183,7 @@ function JavaFile(){
                     handleWebSocketFileSpecificEvent(update);
                 });
                 // подписка на общий канал проекта
-                client.subscribe('/projects/'+project_id, (message) => {
+                client.subscribe('/projects/java/'+project_id, (message) => {
 
                     const update = JSON.parse(message.body);
                     //console.log(update);
@@ -265,7 +265,7 @@ function JavaFile(){
 
 
 
-            const api = "/api/tools/editor/save"
+            const api = "/api/tools/java/editor/save"
             const body = JSON.stringify({
                 content: data.content,
                 file_id:data.file_id,
@@ -320,7 +320,7 @@ function JavaFile(){
     // функция, срабатывающая при попытке сделать файл главным
     const setEntryPointRequest = async () => {
         // запрашивем бэк
-        const response = await fetch("/api/tools/execution/java/setEntryPoint", {
+        const response = await fetch("/api/tools/java/execution/setEntryPoint", {
             method: "POST",
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -346,7 +346,7 @@ function JavaFile(){
         try {
             //setOutput(prev => prev + " compiling code...");
 
-            const response = await fetch("/api/tools/execution/java/stop", {
+            const response = await fetch("/api/tools/java/execution/stop", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -383,7 +383,7 @@ function JavaFile(){
         try {
             //setOutput(prev => prev + " compiling code...");
 
-            const response = await fetch("/api/tools/execution/java/run", {
+            const response = await fetch("/api/tools/java/execution/run", {
                 method: "POST",
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
