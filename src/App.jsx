@@ -1,10 +1,10 @@
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import UserPage from "./routes/UserPage.jsx";
 import MainPage from "./routes/MainPage.jsx";
-import File from "./routes/File.jsx";
+
 import ProjectPage from "./routes/ProjectPage.jsx";
 import {AppDashboard} from "./routes/AppDashboard.jsx";
-import {TextFile} from "./routes/TextFile.jsx";
+
 import {EditorHandler} from "./routes/EditorHandler.jsx";
 
 
