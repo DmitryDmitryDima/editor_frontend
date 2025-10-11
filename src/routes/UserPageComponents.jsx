@@ -4,9 +4,9 @@ import { IoMdAddCircle } from "react-icons/io";
 import PropTypes from "prop-types";
 import {
     Avatar,
-    Button,
+    Button, Checkbox,
     Dialog, DialogActions, DialogContent, DialogContentText,
-    DialogTitle,
+    DialogTitle, FormControlLabel,
     List,
     ListItem,
     ListItemAvatar,
@@ -179,10 +179,12 @@ export function CreationDialog(props){
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
         const name = formJson.project_name;
+        const needEntry = formJson.need_entry;
 
         const apiPath = "/api/users/"+user_name+"/createProject/java";
         const body = JSON.stringify({
-            projectName:name
+            projectName:name,
+            needEntryPoint:needEntry !== undefined
         })
         console.log("apiPath", apiPath);
         const creating = async () => {
@@ -232,6 +234,8 @@ export function CreationDialog(props){
                         fullWidth
                         variant="standard"
                     />
+
+                    <FormControlLabel control={<Checkbox defaultChecked />} label="Создать точку входа" name="need_entry" />
                     <DialogActions>
                         <Button onClick={handleClose}>Отмена</Button>
                         <Button type="submit">Создать!</Button>
