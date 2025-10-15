@@ -84,7 +84,7 @@ export function SimpleDialogDelete(props){
                 const body = JSON.stringify({
                     projectId: selectedValue
                 })
-                const response = await fetch(apiPath, {method:"DELETE", body: body, headers: {'Content-Type': 'application/json'}});
+                const response = await fetch(apiPath, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -208,6 +208,7 @@ export function CreationDialog(props){
         };
 
         creating();
+
 
 
 
