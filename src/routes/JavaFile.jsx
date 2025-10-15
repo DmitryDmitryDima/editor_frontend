@@ -246,7 +246,7 @@ function JavaFile(){
 
 
         setConsoleItems(prevItems => [...prevItems, {
-            id: Date.now(),
+            id: performance.now(),
             text: evt.message
         }]);
     }, []);

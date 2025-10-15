@@ -33,10 +33,14 @@ export function FileRemovalDialog(props){
     const deleting = async () => {
 
         const parentIndex = parentData.index;
-        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeFile/${parentIndex}`
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeFile`
 
         try {
-            const response = await fetch(apiPath, {method:"POST"});
+            let body = JSON.stringify({
+                index:parentIndex
+            })
+            const response = await fetch(apiPath, {method:"POST", body: body,
+                headers: {"Content-Type": "application/json"}});
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -46,7 +50,7 @@ export function FileRemovalDialog(props){
             //const jsonData = await response.json();
             //setData(jsonData);
         } catch (err) {
-            onClose("Удаление завершилось фейлом")
+            onClose("Ошибка удаления")
             //setError(err);
         } finally {
             //setLoading(false);
@@ -101,10 +105,13 @@ export function DirectoryRemovalDialog(props) {
     const deleting = async () => {
 
         const parentIndex = parentData.index;
-        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeDirectory/${parentIndex}`
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/removeDirectory`
         
         try {
-            const response = await fetch(apiPath, {method:"POST"});
+            let body = JSON.stringify({
+                index:parentIndex
+            })
+            const response = await fetch(apiPath, {method:"POST", body, headers:{"Content-Type": "application/json"}});
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
@@ -114,7 +121,7 @@ export function DirectoryRemovalDialog(props) {
             //const jsonData = await response.json();
             //setData(jsonData);
         } catch (err) {
-            onClose("Удаление завершилось фейлом")
+            onClose("Ошибка удаления")
             //setError(err);
         } finally {
             //setLoading(false);
@@ -165,11 +172,16 @@ export function FileCreationDialog(props) {
 
         const parentIndex = parentData.index;
         // посылаем имя и расширение создаваемого файла. Проверки - на стороне сервера
-        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createFile/${parentIndex}/${fileName}.${extension}`;
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createFile`;
 
         const createFile = async () => {
             try {
-                const response = await fetch(apiPath, {method:"POST"});
+                let body = JSON.stringify({
+                    parentIndex: parentIndex,
+                    suggestion: fileName+"."+extension
+                })
+
+                const response = await fetch(apiPath, {method:"POST", body: body, headers:{'Content-Type': 'application/json'}});
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -272,11 +284,19 @@ export function DirectoryCreationDialog(props){
         const parentIndex = parentData.index;
 
 
-        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createDirectory/${parentIndex}/${suggestion}`;
+        const apiPath = `/api/users/${user_name}/projects/java/${project_name}/createDirectory`;
 
         const createDirectory = async () => {
             try {
-                const response = await fetch(apiPath, {method:"POST"});
+                let body = JSON.stringify({
+                    parentIndex: parentIndex,
+                    suggestion: suggestion
+                }
+                )
+                const response = await fetch(apiPath, {method:"POST",
+                    headers:{'Content-Type': 'application/json'},
+                    body:body
+                });
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }

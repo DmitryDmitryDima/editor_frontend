@@ -45,8 +45,9 @@ export default async function javaBasicCompletions(context, data, splat) {
     });
 
     const completions = await response.json();
-    console.log(completions);
 
+
+    console.log("basic completions", completions);
 
 
     //console.log(body)
@@ -81,15 +82,18 @@ export default async function javaBasicCompletions(context, data, splat) {
                     view.dispatch({
                         changes: {from, to, insert: completion.label}
                     });
+                    console.log(completion)
 
                     if (completion.detail!=null){
                         let importStatement = "\nimport "+completion.detail+"."+completion.label+";"
-                        console.log(importStatement)
+
                         // Находим позицию для вставки import (после package declaration)
                         const doc = view.state.doc.toString();
-                        const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
+                        const packageMatch = doc.match(doc.match(/^\s*package\s+[\w\.]+;/m));
+                        console.log(packageMatch)
                         if (packageMatch) {
                             const importPos = packageMatch.index + packageMatch[0].length;
+
                             if (!doc.match(importStatement)){
                                 view.dispatch({
                                     changes: {from: importPos, insert: importStatement}
@@ -117,7 +121,7 @@ export default async function javaBasicCompletions(context, data, splat) {
                             console.log(importStatement)
                             // Находим позицию для вставки import (после package declaration)
                             const doc = view.state.doc.toString();
-                            const packageMatch = doc.match(/^package\s+[\w\.]+;/m);
+                            const packageMatch = doc.match(/^\s*package\s+[\w\.]+;/m);
                             if (packageMatch) {
                                 const importPos = packageMatch.index + packageMatch[0].length;
                                 if (!doc.match(importStatement)){
