@@ -24,6 +24,13 @@ export default defineConfig({
         changeOrigin:true,
         rewrite:(path) => path,
         ws:true
+      },
+
+      '/auth':{
+        target:'http://localhost:8080',
+        changeOrigin:true,
+        rewrite:(path) => path,
+        ws:true
       }
 
 

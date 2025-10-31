@@ -25,6 +25,7 @@
     "@uiw/react-codemirror": "^4.23.10",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
     "is-hotkey": "^0.2.0",
+    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-complex-tree": "^2.6.0",
     "react-dom": "^19.0.0",
