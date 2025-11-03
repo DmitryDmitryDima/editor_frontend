@@ -10,6 +10,8 @@ import {EditorHandler} from "./routes/EditorHandler.jsx";
 import {RegistrationPage} from "./routes/RegistrationPage.jsx";
 import {LoginPage} from "./routes/LoginPage.jsx";
 import {TestSecuredPage} from "./routes/TestSecuredPage.jsx";
+import {CardRepeater} from "./routes/CardRepeater.jsx";
+import {CardAddPage} from "./routes/CardAddPage.jsx";
 
 
 function App() {
@@ -22,11 +24,16 @@ function App() {
                     <Route path="/register" element={<RegistrationPage/>} />
                     <Route path="/login" element={<LoginPage/>}/>
                     <Route path="/test" element={<TestSecuredPage/>}/>
+
+
                     <Route path="/" element={<MainPage />} />
                     <Route path="/users/:user_name" element={<UserPage />} />
                     <Route path="/users/:user_name/projects/java/:project_name/*" element={<EditorHandler />} />
-
                     <Route path="/users/:user_name/projects/java/:project_name/" element={<ProjectPage />} />
+
+
+                    <Route path="/cards/repeat" element={<CardRepeater/>} />
+                    <Route path="/cards/add" element={<CardAddPage/>} />
 
 
                 </Routes>

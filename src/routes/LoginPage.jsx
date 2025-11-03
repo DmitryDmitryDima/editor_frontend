@@ -180,7 +180,7 @@ export function LoginPage() {
 
             localStorage.setItem("accessToken", answerBody.accessToken);
             localStorage.setItem("refreshToken", answerBody.refreshToken);
-            localStorage.setItem("accessTokenExpiration", answerBody.expired_at);
+
 
 
 
