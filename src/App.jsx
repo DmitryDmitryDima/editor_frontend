@@ -12,6 +12,7 @@ import {LoginPage} from "./routes/LoginPage.jsx";
 import {TestSecuredPage} from "./routes/TestSecuredPage.jsx";
 import {CardRepeater} from "./routes/CardRepeater.jsx";
 import {CardAddPage} from "./routes/CardAddPage.jsx";
+import {Decks} from "./routes/Decks.jsx";
 
 
 function App() {
@@ -33,7 +34,9 @@ function App() {
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />
-                    <Route path="/cards/add" element={<CardAddPage/>} />
+                    <Route path="/cards/addCard" element={<CardAddPage/>} />
+                    <Route path="/cards/decks" element={<Decks/>} />
+
 
 
                 </Routes>

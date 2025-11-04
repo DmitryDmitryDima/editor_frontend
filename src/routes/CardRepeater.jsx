@@ -70,24 +70,21 @@ export function CardRepeater() {
             rating:rating
         });
 
-        const response = await fetch(api, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
-        if (!response.ok) {
-            const jsonData = await response.json();
+        try {
+            const response = await fetch(api, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+        }
+        catch (error) {
+            // уведомление
+        }
+        finally {
+            // при любом сценарии пытаемся запросить новую карту
+            await fetchCard()
         }
 
-        const jsonData = await response.json();
 
-        setIsFront(true)
-        if (jsonData.card_id===null) {
-            setIsEmpty(true)
-
-        }
-
-        else{
-            setIsFront(true)
-            setCard(jsonData)
-
-        }
 
 
 
