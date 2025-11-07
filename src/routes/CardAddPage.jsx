@@ -23,6 +23,7 @@ export function CardAddPage(){
     const [username, setUsername] = useState("")
     const[uuid, setUUID] = useState("")
     const [decks, setDecks] = useState([])
+    const [reverseCard, setReverseCard] = useState(false)
     const navigate = useNavigate();
 
 
@@ -37,6 +38,7 @@ export function CardAddPage(){
     };
 
     const handleMenuItemClick = (event, index) => {
+        console.log(decks[selectedIndex]);
         setSelectedIndex(index);
         setOpen(false);
     };
@@ -81,6 +83,8 @@ export function CardAddPage(){
     // Add a request interceptor
     api.interceptors.request.use(
         async (config) => {
+
+            console.log("request interception");
 
             const token = localStorage.getItem('accessToken');
             const decoded = jwtDecode(token);
@@ -166,24 +170,37 @@ export function CardAddPage(){
         }
     }
 
+    const handleCheckBoxChange = (event) => {
+        setReverseCard(!reverseCard)
+    }
+
 
     const handleSubmit = event => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
-        const apiPath = "/api/tools/cards/add";
+        const apiPath = "/addCard";
+
 
         const body = JSON.stringify({
             front_content:formJson.front_content,
             back_content:formJson.back_content,
-            with_reversed:formJson.with_reversed!==undefined // todo bug
+            with_reversed:reverseCard, // todo bug
+            deck_id:decks[selectedIndex].deck_id
+
         })
+
+        console.log(body)
 
         const creating = async () => {
             try {
-                const response = await fetch(apiPath, {method:"POST", body: body, headers: {'Content-Type': 'application/json'}});
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                const response = await api.post(apiPath, body, {
+
+                    headers: {'Content-Type': 'application/json'}});
+
+
+                if (!response.status === 200) {
+                    // уведомление
                 }
 
 
@@ -227,13 +244,12 @@ export function CardAddPage(){
                 <Paper elevation={3} sx={{
                     p: 4,
                     width: '100%',
-                    // Убираем все визуальные эффекты рамки
                     elevation: 0,
                     boxShadow: 'none',
                     border: 'none',
-                    backgroundColor: 'transparent' // или оставить background.paper для цвета фона
+                    backgroundColor: 'transparent'
                 }}>
-                    {/* Заголовок */}
+
                     <Typography
                         variant="h4"
                         component="h1"
@@ -247,7 +263,7 @@ export function CardAddPage(){
                         Создать карточку
                     </Typography>
 
-                    {/* Форма */}
+
                     <Box component="form"
                          ref={formRef}
                          onSubmit={handleSubmit}
@@ -259,7 +275,7 @@ export function CardAddPage(){
                              gap: 3
                          }}
                     >
-                        {/* Выбор колоды - НА ОДНОЙ ЛИНИИ */}
+
                         <Box sx={{
                             width: '100%',
                             display: 'flex',
@@ -297,7 +313,7 @@ export function CardAddPage(){
                             </Box>
                         </Box>
 
-                        {/* Popper для выпадающего меню */}
+
                         <Popper
                             sx={{ zIndex: 1 }}
                             open={open}
@@ -361,7 +377,7 @@ export function CardAddPage(){
 
                         {/* Чекбокс */}
                         <FormControlLabel
-                            control={<Checkbox defaultChecked />}
+                            control={<Checkbox onChange={handleCheckBoxChange} />}
                             label="Создать обратную карточку"
                             name="with_reversed"
                             sx={{ alignSelf: 'flex-start' }}

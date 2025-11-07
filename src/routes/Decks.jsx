@@ -1,5 +1,16 @@
-import {Box, ListItem, ListItemButton, ListItemText, List, Typography, IconButton, Fab} from "@mui/material";
-import {useEffect, useState} from "react";
+import {
+    Box,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+    List,
+    Typography,
+    IconButton,
+    Fab,
+    Button,
+    DialogTitle, DialogContent, DialogActions, Dialog, Snackbar
+} from "@mui/material";
+import React, {useEffect, useState} from "react";
 import {Bar} from "../elements/Bar.jsx";
 import {jwtDecode} from "jwt-decode";
 import {useNavigate} from "react-router-dom";
@@ -7,6 +18,8 @@ import axios from "axios";
 import Container from "@mui/material/Container";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AddIcon from '@mui/icons-material/Add';
+import {DeckCreationDialog, DeckRemovalDialog} from "./DecksPageComponents.jsx";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export function Decks(){
 
@@ -16,10 +29,29 @@ export function Decks(){
 
     const [decks, setDecks] = useState([])
 
+    const [chosenDeckId, setChosenDeckId] = useState(null)
+    const[chosenDeckName, setChosenDeckName] = useState(null)
+
     // api для общения с карточным сервисом
     const api = axios.create({
         baseURL: '/api/tools/cards/',
     });
+
+
+    // диалоговое окно создания колоды
+    const [deckCreationDialog, setDeckCreationDialog] = useState(false);
+
+    // диалоговое окно удаления колоды
+    const [deckRemovalDialog, setDeckRemovalDialog] = useState(false);
+
+
+
+    // состояния snackbar
+    const [snackbarmessage, setSnackbarmessage] = useState(null);
+    const [snackBarOpened, setSnackbarOpened] = useState(false);
+
+
+
 
     // управление токенами
     // Add a request interceptor
@@ -119,6 +151,7 @@ export function Decks(){
         try {
             const response = await api.get('/getDecks');
             if (response.status === 200) {
+                console.log(response.data)
                 setDecks(response.data);
             }
             else {
@@ -130,14 +163,63 @@ export function Decks(){
         }
     }
 
+
+    // нажатие на кнопку повторения
     const handleRepetitionStart = async (deck_id)=>{
-        console.log(deck_id);
+        console.log("Повторение", deck_id);
     }
+
+    // нажатие на кнопку удаления
+    const handleDeckRemove = async (deck_id, deck_name)=>{
+        setChosenDeckId(deck_id)
+        setChosenDeckName(deck_name)
+        handleDeckRemovalDialogOpen()
+    }
+
+
 
 
     function handleFabClick() {
         navigate("/cards/addCard")
     }
+
+
+    // открытие и закрытие диалога создания колоды
+    const handleDeckCreationDialogOpen = () => {
+        setDeckCreationDialog(true);
+    }
+
+    const handleDeckCreationDialogClose = (value) => {
+        loadDecks()
+        setDeckCreationDialog(false);
+        openSnackBar(value)
+    }
+
+    // открытие и закрытие диалога удаления колоды
+    const handleDeckRemovalDialogOpen = () => {
+        setDeckRemovalDialog(true);
+    }
+
+    const handleDeckRemovalDialogClose = (value) => {
+        loadDecks()
+        setDeckRemovalDialog(false);
+        openSnackBar(value)
+    }
+
+    // уведомления
+    const snackBarHandleClose = ()=>{
+
+        setSnackbarOpened(false);
+
+
+    }
+
+    // вызвать уведомление
+    const openSnackBar = (message) => {
+        setSnackbarmessage(message);
+        setSnackbarOpened(true);
+    };
+
 
     return(
 
@@ -163,11 +245,19 @@ export function Decks(){
                         decks.map(deck=>{
                             return (
                                 <ListItem disablePadding>
-                                    <ListItemButton>
+                                    <ListItemButton sx={{ display: 'flex', gap: 2 }}>
 
-                                        <ListItemText primary= {deck.deck_name} />
+                                        <ListItemText primary= {deck.deck_name} sx={{ flex: '1 1 auto' }} />
+                                        <ListItemText sx={{
+                                            color: 'success.main',
+                                            flex: '0 0 auto', // не растягивается
+                                            marginRight: 2 // отступ справа
+                                        }}  primary={deck.to_study} />
                                         <IconButton onClick={()=>handleRepetitionStart(deck.deck_id)}>
                                             <PlayArrowIcon/>
+                                        </IconButton>
+                                        <IconButton onClick={()=>handleDeckRemove(deck.deck_id, deck.deck_name)}>
+                                            <DeleteIcon/>
                                         </IconButton>
                                     </ListItemButton>
                                 </ListItem>
@@ -176,6 +266,37 @@ export function Decks(){
                         })
                     }
                 </List>
+
+
+                <Button onClick={handleDeckCreationDialogOpen} >Создать новую колоду</Button>
+
+
+
+                <DeckCreationDialog
+                    open={deckCreationDialog}
+                    onClose={handleDeckCreationDialogClose}
+                    api={api}
+                />
+
+                <DeckRemovalDialog
+                    open={deckRemovalDialog}
+                    onClose={handleDeckRemovalDialogClose}
+                    api={api}
+                    deck_id={chosenDeckId}
+                    deck_name={chosenDeckName}
+                    />
+
+                <Snackbar
+                    open={snackBarOpened}
+                    autoHideDuration={6000}
+                    onClose={snackBarHandleClose}
+                    message={snackbarmessage}
+
+                />
+
+
+
+
 
                 <Fab color="secondary" aria-label="add" sx={{
                     position: 'absolute',

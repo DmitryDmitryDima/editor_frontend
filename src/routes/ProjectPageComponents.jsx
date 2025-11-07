@@ -42,7 +42,7 @@ export function FileRemovalDialog(props){
             const response = await fetch(apiPath, {method:"POST", body: body,
                 headers: {"Content-Type": "application/json"}});
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                onClose("ошибка удаления")
             }
 
             onClose("Файл успешно стерт")
