@@ -26,12 +26,15 @@ export function DeckRemovalDialog(props) {
         const data = {deck_id: deck_id}
         console.log(data)
         try {
-            const response = api.post("/deleteDeck", data, {headers:{'Content-Type': 'application/json'}})
+            const response = await api.post("/deleteDeck", data, {headers:{'Content-Type': 'application/json'}})
+
             if (response.status !== 200) {
                 onClose(response.data.detail || "Неизвестная ошибка")
             }
+            onClose("Колода "+deck_name+" успешно стерта")
         }
         catch (error) {
+            console.log(error)
             onClose("Неизвестная ошибка")
         }
 

@@ -150,6 +150,7 @@ export function Decks(){
     const loadDecks = async () => {
         try {
             const response = await api.get('/getDecks');
+            console.log("fectching decks");
             if (response.status === 200) {
                 console.log(response.data)
                 setDecks(response.data);
@@ -167,6 +168,7 @@ export function Decks(){
     // нажатие на кнопку повторения
     const handleRepetitionStart = async (deck_id)=>{
         console.log("Повторение", deck_id);
+        navigate("/cards/repeat?deck_id="+deck_id)
     }
 
     // нажатие на кнопку удаления
@@ -253,6 +255,13 @@ export function Decks(){
                                             flex: '0 0 auto', // не растягивается
                                             marginRight: 2 // отступ справа
                                         }}  primary={deck.to_study} />
+
+                                        <ListItemText sx={{
+                                            color: 'text.primary',
+                                            flex: '0 0 auto', // не растягивается
+                                            marginRight: 2 // отступ справа
+                                        }}  primary={deck.cards_amount} />
+
                                         <IconButton onClick={()=>handleRepetitionStart(deck.deck_id)}>
                                             <PlayArrowIcon/>
                                         </IconButton>
