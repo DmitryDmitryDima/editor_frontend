@@ -3,8 +3,9 @@ import {useNavigate, useSearchParams} from 'react-router-dom';
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import {Bar} from "../elements/Bar.jsx";
-import {Box, Button, ButtonGroup, Typography} from "@mui/material";
+import {Box, Button, ButtonGroup, Fab, Stack, Typography} from "@mui/material";
 import Container from "@mui/material/Container";
+import AddIcon from "@mui/icons-material/Add";
 
 
 
@@ -195,6 +196,29 @@ export function CardRepeater() {
 
     }
 
+    const handleDelete = async () => {
+        let apiPath = "/deleteCard"
+
+        const body = JSON.stringify({
+            card_id:card.card_id,
+        });
+
+        try {
+            const response = await api.post(apiPath, body, {headers:{'Content-Type': 'application/json'}})
+            if (response.status ===200) {
+                fetchCard()
+            }
+            else {
+                console.log("error")
+            }
+
+        }
+        catch (error) {
+            // уведомление
+        }
+
+    }
+
 
 
     return (
@@ -206,6 +230,7 @@ export function CardRepeater() {
                 {isEmpty?(
                     <Box>
                         <Typography>Карточек для изучения нет</Typography>
+                        <Button  onClick={()=>navigate("/cards/decks")}>К колодам</Button>
                     </Box>
 
                 ):(
@@ -216,7 +241,10 @@ export function CardRepeater() {
                         }}>{isFront ? card.front_content : card.back_content}</Typography>
                         {isFront && <Button  onClick={() => setIsFront(!isFront)} variant="contained">Показать ответ</Button>}
 
-                        {!isFront && <Typography >Как тяжело было вспомнить?</Typography>}
+                        {!isFront && <Typography sx={{
+
+                            textAlign: { xs: 'center', md: 'left' }
+                        }} >Как тяжело было вспомнить?</Typography>}
 
                         {!isFront &&
                             <ButtonGroup  variant="contained" size="small">
@@ -231,7 +259,26 @@ export function CardRepeater() {
 
 
 
+                        <Stack
+                            direction="row"
+                            spacing={2}
+                            sx={{
+                                position: 'fixed',
+                                bottom: 16,
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                            }}
+                        >
+                            <Fab variant="extended" onClick={handleDelete}> Удалить
 
+                            </Fab>
+
+                            <Fab variant="extended" onClick={()=>{
+                                navigate("/cards/editCard?&card_id="+card.card_id);
+                            }}>
+                                Изменить
+                            </Fab>
+                        </Stack>
 
 
 
@@ -239,7 +286,10 @@ export function CardRepeater() {
 
 
 
+
+
                 )}
+
 
 
 
