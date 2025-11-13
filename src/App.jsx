@@ -16,6 +16,9 @@ import {Decks} from "./routes/Decks.jsx";
 import {CardEditPage} from "./routes/CardEditPage.jsx";
 
 
+import "./App.css"
+
+
 function App() {
 
     return (
@@ -38,6 +41,7 @@ function App() {
                     <Route path="/cards/addCard" element={<CardAddPage/>} />
                     <Route path="/cards/editCard" element={<CardEditPage/>} />
                     <Route path="/cards/decks" element={<Decks/>} />
+
 
 
 

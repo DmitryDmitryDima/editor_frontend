@@ -23,6 +23,8 @@ export function CardEditPage(){
 
     const [searchParams, setSearchParams] = useSearchParams();
     const card_id = searchParams.get("card_id");
+    const [front, setFront] = useState("");
+    const [back, setBack] = useState("");
 
 
     const formRef = useRef();
@@ -161,6 +163,8 @@ export function CardEditPage(){
             if (response.status === 200) {
 
                 setCard(response.data)
+                setFront(response.data.front_content)
+                setBack(response.data.back_content)
             }
             else {
                 console.log(response.status);
@@ -170,6 +174,9 @@ export function CardEditPage(){
             navigate('/login');
         }
     }
+
+
+
 
 
 
@@ -289,7 +296,8 @@ export function CardEditPage(){
                             fullWidth
                             variant="standard"
                             multiline
-                            value={card.front_content}
+                            value={front}
+                            onChange={(e) => setFront(e.target.value)}
                             rows={5}
                         />
 
@@ -298,7 +306,8 @@ export function CardEditPage(){
                             margin="dense"
                             id="back_content"
                             name="back_content"
-                            value={card.back_content}
+                            value={back}
+                            onChange={(e) => {setBack(e.target.value)}}
                             label="Ответ"
                             fullWidth
                             variant="standard"

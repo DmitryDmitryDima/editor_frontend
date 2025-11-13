@@ -225,11 +225,19 @@ export function Decks(){
 
     return(
 
-        <Box sx={{ width: '100%'}}>
+        <Container sx={{ width: '100%',
+            display:"flex",
+            justifyContent:"center",
+            alignItems:"center",
+
+
+        }}>
 
             <Bar username={username}  />
 
-            <Container >
+            <Container sx={{
+
+            }} >
 
                 <Typography
                     variant="h4"
@@ -237,7 +245,8 @@ export function Decks(){
                     gutterBottom
                     sx={{
                         fontSize: { xs: '1.5rem', md: '2rem' },
-                        textAlign: { xs: 'center', md: 'left' }
+                        textAlign: { xs: 'center', md: 'left' },
+
                     }}>
                     Ваши колоды:
                 </Typography>
@@ -252,14 +261,14 @@ export function Decks(){
                                         <ListItemText primary= {deck.deck_name} sx={{ flex: '1 1 auto' }} />
                                         <ListItemText sx={{
                                             color: 'success.main',
-                                            flex: '0 0 auto', // не растягивается
-                                            marginRight: 2 // отступ справа
+                                            flex: '0 0 auto',
+                                            marginRight: 2
                                         }}  primary={deck.to_study} />
 
                                         <ListItemText sx={{
                                             color: 'text.primary',
-                                            flex: '0 0 auto', // не растягивается
-                                            marginRight: 2 // отступ справа
+                                            flex: '0 0 auto',
+                                            marginRight: 2
                                         }}  primary={deck.cards_amount} />
 
                                         <IconButton onClick={()=>handleRepetitionStart(deck.deck_id)}>
@@ -317,7 +326,7 @@ export function Decks(){
 
             </Container>
 
-            </Box>
+            </Container>
 
     );
 
