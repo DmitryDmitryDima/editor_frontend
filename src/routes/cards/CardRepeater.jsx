@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
-import {Bar} from "../elements/Bar.jsx";
+import {Bar} from "../../elements/Bar.jsx";
 import {Box, Button, ButtonGroup, Fab, Grid, Stack, Typography} from "@mui/material";
 import Container from "@mui/material/Container";
 import AddIcon from "@mui/icons-material/Add";
@@ -35,7 +35,7 @@ export function CardRepeater() {
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/tools/cards/',
+        baseURL: '/api/cards/',
     });
 
     // управление токенами

@@ -14,7 +14,7 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import {Bar} from "../elements/Bar.jsx";
+import {Bar} from "../../elements/Bar.jsx";
 import Container from "@mui/material/Container";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import MenuItem from "@mui/material/MenuItem";
@@ -79,7 +79,7 @@ export function CardEditPage(){
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/tools/cards/',
+        baseURL: '/api/cards/',
     });
 
     // управление токенами

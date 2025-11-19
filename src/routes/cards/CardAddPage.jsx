@@ -4,12 +4,12 @@ import {
     ButtonGroup,
     Checkbox,
     ClickAwayListener,
-    FormControlLabel, Grow, MenuList, Paper, Popper,
+    FormControlLabel, Grow, MenuList, Paper, Popper, Snackbar,
     TextField,
     Typography
 } from "@mui/material";
-import {useEffect, useRef, useState} from "react";
-import {Bar} from "../elements/Bar.jsx";
+import React, {useEffect, useRef, useState} from "react";
+import {Bar} from "../../elements/Bar.jsx";
 import {jwtDecode} from "jwt-decode";
 import {useNavigate} from "react-router-dom";
 import Container from "@mui/material/Container";
@@ -25,6 +25,10 @@ export function CardAddPage(){
     const [decks, setDecks] = useState([])
     const [reverseCard, setReverseCard] = useState(false)
     const navigate = useNavigate();
+
+    // состояния snackbar
+    const [snackbarmessage, setSnackbarmessage] = useState(null);
+    const [snackBarOpened, setSnackbarOpened] = useState(false);
 
 
     const [open, setOpen] = useState(false);
@@ -76,7 +80,7 @@ export function CardAddPage(){
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/tools/cards/',
+        baseURL: '/api/cards/',
     });
 
     // управление токенами
@@ -175,6 +179,21 @@ export function CardAddPage(){
     }
 
 
+    // уведомления
+    const snackBarHandleClose = ()=>{
+
+        setSnackbarOpened(false);
+
+
+    }
+
+    // вызвать уведомление
+    const openSnackBar = (message) => {
+        setSnackbarmessage(message);
+        setSnackbarOpened(true);
+    };
+
+
     const handleSubmit = event => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -201,6 +220,10 @@ export function CardAddPage(){
 
                 if (!response.status === 200) {
                     // уведомление
+                    openSnackBar("Ошибка! Карточка не добавлена")
+                }
+                else {
+                    openSnackBar("Карточка добавлена")
                 }
 
 
@@ -396,6 +419,14 @@ export function CardAddPage(){
                         >
                             Создать карточку!
                         </Button>
+
+                        <Snackbar
+                            open={snackBarOpened}
+                            autoHideDuration={2000}
+                            onClose={snackBarHandleClose}
+                            message={snackbarmessage}
+
+                        />
                     </Box>
                 </Paper>
             </Container>

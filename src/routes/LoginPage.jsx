@@ -186,7 +186,7 @@ export function LoginPage() {
 
 
 
-            navigate("/test", { state: { usernameReceived: formData.username}});
+            navigate("/users/"+formData.username, { state: { usernameReceived: formData.username}});
 
 
 

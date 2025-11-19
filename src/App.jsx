@@ -10,13 +10,14 @@ import {EditorHandler} from "./routes/EditorHandler.jsx";
 import {RegistrationPage} from "./routes/RegistrationPage.jsx";
 import {LoginPage} from "./routes/LoginPage.jsx";
 import {TestSecuredPage} from "./routes/TestSecuredPage.jsx";
-import {CardRepeater} from "./routes/CardRepeater.jsx";
-import {CardAddPage} from "./routes/CardAddPage.jsx";
-import {Decks} from "./routes/Decks.jsx";
-import {CardEditPage} from "./routes/CardEditPage.jsx";
+import {CardRepeater} from "./routes/cards/CardRepeater.jsx";
+import {CardAddPage} from "./routes/cards/CardAddPage.jsx";
+import {Decks} from "./routes/cards/Decks.jsx";
+import {CardEditPage} from "./routes/cards/CardEditPage.jsx";
 
 
 import "./App.css"
+import {ProfileHandler} from "./routes/overall/ProfileHandler.jsx";
 
 
 function App() {
@@ -32,9 +33,13 @@ function App() {
 
 
                     <Route path="/" element={<MainPage />} />
-                    <Route path="/users/:user_name" element={<UserPage />} />
+
                     <Route path="/users/:user_name/projects/java/:project_name/*" element={<EditorHandler />} />
                     <Route path="/users/:user_name/projects/java/:project_name/" element={<ProjectPage />} />
+
+
+
+                    <Route path="/users/:username" element={<ProfileHandler />} />
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />

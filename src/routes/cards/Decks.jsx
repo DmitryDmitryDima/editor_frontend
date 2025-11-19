@@ -11,7 +11,7 @@ import {
     DialogTitle, DialogContent, DialogActions, Dialog, Snackbar
 } from "@mui/material";
 import React, {useEffect, useState} from "react";
-import {Bar} from "../elements/Bar.jsx";
+import {Bar} from "../../elements/Bar.jsx";
 import {jwtDecode} from "jwt-decode";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
@@ -34,7 +34,7 @@ export function Decks(){
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/tools/cards/',
+        baseURL: '/api/cards/',
     });
 
 
