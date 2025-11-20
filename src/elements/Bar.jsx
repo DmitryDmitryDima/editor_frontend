@@ -39,6 +39,10 @@ export function Bar(props){
         if (choice==="Карточки"){
             navigate("/cards/decks")
         }
+
+        if (choice==="Проекты"){
+            navigate("/users/"+ username+"/projects")
+        }
         setAnchorElNav(null);
     };
 
@@ -51,6 +55,9 @@ export function Bar(props){
         if (settingObj.setting==="Выйти"){
 
             logout()
+        }
+        if (settingObj.setting==="Профиль"){
+            navigate("/users/"+username);
         }
     }
 

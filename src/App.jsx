@@ -18,6 +18,7 @@ import {CardEditPage} from "./routes/cards/CardEditPage.jsx";
 
 import "./App.css"
 import {ProfileHandler} from "./routes/overall/ProfileHandler.jsx";
+import {ProjectHandler} from "./routes/overall/ProjectHandler.jsx";
 
 
 function App() {
@@ -40,6 +41,8 @@ function App() {
 
 
                     <Route path="/users/:username" element={<ProfileHandler />} />
+
+                    <Route path="/users/:username/projects" element={<ProjectHandler/>} />
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />
