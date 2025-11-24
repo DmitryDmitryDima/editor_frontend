@@ -88,7 +88,7 @@ export function Bar(props){
 
 
     return (
-        <AppBar >
+        <AppBar  >
             <Container maxWidth="xl">
                 <Toolbar disableGutters>
                     {/* Логотип/Название - слева на десктопе, центр на мобиле */}

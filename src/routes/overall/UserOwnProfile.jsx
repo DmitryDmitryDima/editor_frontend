@@ -183,6 +183,9 @@ export function UserOwnProfile(props){
             display:"flex",
             justifyContent:"center",
             alignItems:"center",
+            minHeight: '100vh',
+            flexDirection: 'column',
+
 
 
         }}>
@@ -194,9 +197,16 @@ export function UserOwnProfile(props){
                 direction={{ xs: "column", md: "row" }}
                 spacing={3}
                 sx={{
+
                     position: "absolute",
                     top: "20vh",
                     px: { xs: 0, md: 7 }
+
+
+
+
+
+
                 }}
             >
 
@@ -269,6 +279,7 @@ export function UserOwnProfile(props){
                                 >
                                     Редактировать профиль
                                 </Button>
+
                             </Grid>
                         </Grid>
                     </Card>

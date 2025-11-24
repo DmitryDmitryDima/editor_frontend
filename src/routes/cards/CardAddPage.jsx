@@ -2,9 +2,9 @@ import {
     Box,
     Button,
     ButtonGroup,
-    Checkbox,
+    Checkbox, CircularProgress,
     ClickAwayListener,
-    FormControlLabel, Grow, MenuList, Paper, Popper, Snackbar,
+    FormControlLabel, Grow, IconButton, MenuList, Paper, Popper, Snackbar, Stack,
     TextField,
     Typography
 } from "@mui/material";
@@ -16,6 +16,8 @@ import Container from "@mui/material/Container";
 import axios from "axios";
 import MenuItem from "@mui/material/MenuItem";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import Toolbar from "@mui/material/Toolbar";
 
 export function CardAddPage(){
 
@@ -24,7 +26,11 @@ export function CardAddPage(){
     const[uuid, setUUID] = useState("")
     const [decks, setDecks] = useState([])
     const [reverseCard, setReverseCard] = useState(false)
+    const [back, setBack] = useState("");
+    const [front, setFront] = useState("");
     const navigate = useNavigate();
+
+    const [loading, setLoading] = useState(false);
 
     // состояния snackbar
     const [snackbarmessage, setSnackbarmessage] = useState(null);
@@ -80,7 +86,7 @@ export function CardAddPage(){
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/cards/',
+        baseURL: '/api',
     });
 
     // управление токенами
@@ -160,7 +166,7 @@ export function CardAddPage(){
 
     const loadDecks = async () => {
         try {
-            const response = await api.get('/getDecks');
+            const response = await api.get('/cards/getDecks');
             if (response.status === 200) {
                 setDecks(response.data);
                 console.log(response.data)
@@ -198,7 +204,7 @@ export function CardAddPage(){
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
-        const apiPath = "/addCard";
+        const apiPath = "/cards/addCard";
 
 
         const body = JSON.stringify({
@@ -224,6 +230,8 @@ export function CardAddPage(){
                 }
                 else {
                     openSnackBar("Карточка добавлена")
+                    setFront("")
+                    setBack("")
                 }
 
 
@@ -252,9 +260,53 @@ export function CardAddPage(){
     }
 
 
+    const generateAnswer = async ()=>{
+        try {
+
+            if (front === ""){
+                openSnackBar("Введите вопрос")
+            }
+            else {
+                let body = JSON.stringify({
+                    question:front
+                })
+
+                setLoading(true);
+
+                const response = await api.post("/ai/cards/autocomplete", body, {
+
+                    headers: {'Content-Type': 'application/json'}});
+
+
+                if (!response.status === 200) {
+                    // уведомление
+                    openSnackBar("AI сервис недоступен, попробуйте позже")
+                }
+                else {
+                    setBack(response.data.answer)
+                }
+            }
+
+
+
+
+
+
+        } catch (err) {
+
+
+        } finally {
+
+            setLoading(false);
+        }
+    }
+
+
     return (
         <Box sx={{ width: '100%', minHeight: '100vh' }}>
             <Bar username={username} />
+
+
 
             <Container maxWidth="sm" sx={{
                 py: 4,
@@ -372,7 +424,7 @@ export function CardAddPage(){
                             )}
                         </Popper>
 
-                        {/* Поля формы */}
+
                         <TextField
                             autoFocus
                             required
@@ -380,11 +432,26 @@ export function CardAddPage(){
                             id="front_content"
                             name="front_content"
                             label="Вопрос"
+                            value={front}
+                            onChange={(e) => setFront(e.target.value)}
                             fullWidth
                             variant="standard"
                             multiline
                             rows={5}
                         />
+
+                        <Stack direction="row" spacing={1} sx={{alignItems: 'left'}}>
+                            <IconButton onClick={generateAnswer} >
+                                <PlayArrowIcon/>
+                                ai
+                            </IconButton>
+
+                            {loading && <CircularProgress color="secondary"/>}
+                        </Stack>
+
+
+
+
 
                         <TextField
                             required
@@ -392,13 +459,15 @@ export function CardAddPage(){
                             id="back_content"
                             name="back_content"
                             label="Ответ"
+                            value={back}
                             fullWidth
                             variant="standard"
+                            onChange={(e) => setBack(e.target.value)}
                             multiline
                             rows={5}
                         />
 
-                        {/* Чекбокс */}
+
                         <FormControlLabel
                             control={<Checkbox onChange={handleCheckBoxChange} />}
                             label="Создать обратную карточку"
@@ -406,7 +475,7 @@ export function CardAddPage(){
                             sx={{ alignSelf: 'flex-start' }}
                         />
 
-                        {/* Кнопка отправки */}
+
                         <Button
                             type="submit"
                             variant="contained"
