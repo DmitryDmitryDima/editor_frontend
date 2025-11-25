@@ -9,6 +9,7 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import Card from "@mui/material/Card";
 import Badge from "@mui/material/Badge";
 import Button from "@mui/material/Button";
+import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 
 
 
@@ -175,129 +176,96 @@ export function UserOwnProfile(props){
 
 
 
+    const content = (
+
+        <Grid item md={3}>
+            <Card variant="outlined" sx={{ mx: 'auto' }}>
+                <Grid
+                    container
+                    direction="column"
+                    justifyContent="center"
+                    alignItems="center"
+                >
+                    {/* CARD HEADER START */}
+                    <Grid item sx={{ p: "1.5rem 0rem", textAlign: "center" }}>
+                        {/* PROFILE PHOTO */}
+                        <Badge
+                            overlap="circular"
+                            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                            badgeContent={
+                                <PhotoCameraIcon
+                                    sx={{
+                                        border: "5px solid white",
+                                        backgroundColor: "#ff558f",
+                                        borderRadius: "50%",
+                                        padding: ".2rem",
+                                        width: 35,
+                                        height: 35
+                                    }}
+                                ></PhotoCameraIcon>
+                            }
+                        >
+                            <Avatar
+                                sx={{ width: 100, height: 100, mb: 1.5 }}
+
+                            ></Avatar>
+                        </Badge>
+
+                        {/* DESCRIPTION */}
+                        <Typography variant="h6">{username}</Typography>
+                        <Typography color="text.secondary">Some words...{userProperties.about}</Typography>
+                    </Grid>
+                    {/* CARD HEADER END */}
+
+                    {/* DETAILS */}
+                    <Grid container>
+                        <Grid item xs={6}>
+                            <Typography style={styles.details}>Сообщения</Typography>
+                            <Typography onClick={()=>{
+                                navigate("/cards/decks")
+                            }} style={styles.details}>Колоды</Typography>
+                            <Typography onClick={()=>{
+                                navigate("/users/"+username+"/projects")
+                            }} style={styles.details}>Проекты</Typography>
+                            <Typography style={styles.details}>Хранилище</Typography>
+                        </Grid>
+                        {/* VALUES */}
+                        <Grid item xs={6} sx={{ textAlign: "end" }}>
+                            <Typography style={styles.value}>0</Typography>
+                            <Typography style={styles.value}>{decks.length}</Typography>
+                            <Typography style={styles.value}>0</Typography>
+                            <Typography style={styles.value}>0</Typography>
+                        </Grid>
+                    </Grid>
+
+                    {/* BUTTON */}
+                    <Grid item style={styles.details} sx={{ width: "100%" }}>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            sx={{ width: "99%", p: 1, my: 2 }}
+                        >
+                            Редактировать профиль
+                        </Button>
+
+                    </Grid>
+                </Grid>
+            </Card>
+
+        </Grid>
+
+    )
+
+
+
+
+
+
 
 
 
     return (
-        <Container sx={{ width: '100%',
-            display:"flex",
-            justifyContent:"center",
-            alignItems:"center",
-            minHeight: '100vh',
-            flexDirection: 'column',
-
-
-
-        }}>
-
-            <Bar username={username}  />
-
-            <Grid
-                container
-                direction={{ xs: "column", md: "row" }}
-                spacing={3}
-                sx={{
-
-                    position: "absolute",
-                    top: "20vh",
-                    px: { xs: 0, md: 7 }
-
-
-
-
-
-
-                }}
-            >
-
-                <Grid item md={3}>
-                    <Card variant="outlined">
-                        <Grid
-                            container
-                            direction="column"
-                            justifyContent="center"
-                            alignItems="center"
-                        >
-                            {/* CARD HEADER START */}
-                            <Grid item sx={{ p: "1.5rem 0rem", textAlign: "center" }}>
-                                {/* PROFILE PHOTO */}
-                                <Badge
-                                    overlap="circular"
-                                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                                    badgeContent={
-                                        <PhotoCameraIcon
-                                            sx={{
-                                                border: "5px solid white",
-                                                backgroundColor: "#ff558f",
-                                                borderRadius: "50%",
-                                                padding: ".2rem",
-                                                width: 35,
-                                                height: 35
-                                            }}
-                                        ></PhotoCameraIcon>
-                                    }
-                                >
-                                    <Avatar
-                                        sx={{ width: 100, height: 100, mb: 1.5 }}
-
-                                    ></Avatar>
-                                </Badge>
-
-                                {/* DESCRIPTION */}
-                                <Typography variant="h6">{username}</Typography>
-                                <Typography color="text.secondary">Some words...{userProperties.about}</Typography>
-                            </Grid>
-                            {/* CARD HEADER END */}
-
-                            {/* DETAILS */}
-                            <Grid container>
-                                <Grid item xs={6}>
-                                    <Typography style={styles.details}>Сообщения</Typography>
-                                    <Typography onClick={()=>{
-                                        navigate("/cards/decks")
-                                    }} style={styles.details}>Колоды</Typography>
-                                    <Typography onClick={()=>{
-                                        navigate("/users/"+username+"/projects")
-                                    }} style={styles.details}>Проекты</Typography>
-                                    <Typography style={styles.details}>Хранилище</Typography>
-                                </Grid>
-                                {/* VALUES */}
-                                <Grid item xs={6} sx={{ textAlign: "end" }}>
-                                    <Typography style={styles.value}>0</Typography>
-                                    <Typography style={styles.value}>{decks.length}</Typography>
-                                    <Typography style={styles.value}>0</Typography>
-                                    <Typography style={styles.value}>0</Typography>
-                                </Grid>
-                            </Grid>
-
-                            {/* BUTTON */}
-                            <Grid item style={styles.details} sx={{ width: "100%" }}>
-                                <Button
-                                    variant="contained"
-                                    color="secondary"
-                                    sx={{ width: "99%", p: 1, my: 2 }}
-                                >
-                                    Редактировать профиль
-                                </Button>
-
-                            </Grid>
-                        </Grid>
-                    </Card>
-
-                </Grid>
-
-
-
-            </Grid>
-
-
-
-
-
-
-
-        </Container>
-
+        <AppBarWithDrawer username={username} content = {content} />
 
     )
 }

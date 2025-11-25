@@ -8,7 +8,7 @@ import {
     IconButton,
     Fab,
     Button,
-    DialogTitle, DialogContent, DialogActions, Dialog, Snackbar
+    DialogTitle, DialogContent, DialogActions, Dialog, Snackbar, Grid
 } from "@mui/material";
 import React, {useEffect, useState} from "react";
 import {Bar} from "../../elements/Bar.jsx";
@@ -20,6 +20,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import AddIcon from '@mui/icons-material/Add';
 import {DeckCreationDialog, DeckRemovalDialog} from "./DecksPageComponents.jsx";
 import DeleteIcon from '@mui/icons-material/Delete';
+import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 
 export function Decks(){
 
@@ -223,110 +224,104 @@ export function Decks(){
     };
 
 
+
+
+    const content = (
+        <Grid item md={3}>
+
+            <Typography
+                variant="h4"
+                component="h1"
+                gutterBottom
+                sx={{
+                    fontSize: { xs: '1.5rem', md: '2rem' },
+                    textAlign: { xs: 'center', md: 'left' },
+
+                }}>
+                Ваши колоды:
+            </Typography>
+
+            <List>
+                {
+                    decks.map(deck=>{
+                        return (
+                            <ListItem disablePadding>
+                                <ListItemButton sx={{ display: 'flex', gap: 2 }}>
+
+                                    <ListItemText primary= {deck.deck_name} sx={{ flex: '1 1 auto' }} />
+                                    <ListItemText sx={{
+                                        color: 'success.main',
+                                        flex: '0 0 auto',
+                                        marginRight: 2
+                                    }}  primary={deck.to_study} />
+
+                                    <ListItemText sx={{
+                                        color: 'text.primary',
+                                        flex: '0 0 auto',
+                                        marginRight: 2
+                                    }}  primary={deck.cards_amount} />
+
+                                    <IconButton onClick={()=>handleRepetitionStart(deck.deck_id)}>
+                                        <PlayArrowIcon/>
+                                    </IconButton>
+                                    <IconButton onClick={()=>handleDeckRemove(deck.deck_id, deck.deck_name)}>
+                                        <DeleteIcon/>
+                                    </IconButton>
+                                </ListItemButton>
+                            </ListItem>
+                        )
+
+                    })
+                }
+            </List>
+
+
+            <Button onClick={handleDeckCreationDialogOpen} >Создать новую колоду</Button>
+
+
+
+            <DeckCreationDialog
+                open={deckCreationDialog}
+                onClose={handleDeckCreationDialogClose}
+                api={api}
+            />
+
+            <DeckRemovalDialog
+                open={deckRemovalDialog}
+                onClose={handleDeckRemovalDialogClose}
+                api={api}
+                deck_id={chosenDeckId}
+                deck_name={chosenDeckName}
+            />
+
+            <Snackbar
+                open={snackBarOpened}
+                autoHideDuration={6000}
+                onClose={snackBarHandleClose}
+                message={snackbarmessage}
+
+            />
+
+
+
+
+
+            <Fab color="secondary" aria-label="add" sx={{
+                position: 'absolute',
+                bottom: 16,
+                right: 16,
+            }} onClick={handleFabClick}>
+                <AddIcon />
+            </Fab>
+
+
+        </Grid>
+    )
+
+
     return(
 
-        <Container sx={{ width: '100%',
-            display:"flex",
-            justifyContent:"center",
-            alignItems:"center",
-
-
-        }}>
-
-            <Bar username={username}  />
-
-            <Container sx={{
-
-            }} >
-
-                <Typography
-                    variant="h4"
-                    component="h1"
-                    gutterBottom
-                    sx={{
-                        fontSize: { xs: '1.5rem', md: '2rem' },
-                        textAlign: { xs: 'center', md: 'left' },
-
-                    }}>
-                    Ваши колоды:
-                </Typography>
-
-                <List>
-                    {
-                        decks.map(deck=>{
-                            return (
-                                <ListItem disablePadding>
-                                    <ListItemButton sx={{ display: 'flex', gap: 2 }}>
-
-                                        <ListItemText primary= {deck.deck_name} sx={{ flex: '1 1 auto' }} />
-                                        <ListItemText sx={{
-                                            color: 'success.main',
-                                            flex: '0 0 auto',
-                                            marginRight: 2
-                                        }}  primary={deck.to_study} />
-
-                                        <ListItemText sx={{
-                                            color: 'text.primary',
-                                            flex: '0 0 auto',
-                                            marginRight: 2
-                                        }}  primary={deck.cards_amount} />
-
-                                        <IconButton onClick={()=>handleRepetitionStart(deck.deck_id)}>
-                                            <PlayArrowIcon/>
-                                        </IconButton>
-                                        <IconButton onClick={()=>handleDeckRemove(deck.deck_id, deck.deck_name)}>
-                                            <DeleteIcon/>
-                                        </IconButton>
-                                    </ListItemButton>
-                                </ListItem>
-                            )
-
-                        })
-                    }
-                </List>
-
-
-                <Button onClick={handleDeckCreationDialogOpen} >Создать новую колоду</Button>
-
-
-
-                <DeckCreationDialog
-                    open={deckCreationDialog}
-                    onClose={handleDeckCreationDialogClose}
-                    api={api}
-                />
-
-                <DeckRemovalDialog
-                    open={deckRemovalDialog}
-                    onClose={handleDeckRemovalDialogClose}
-                    api={api}
-                    deck_id={chosenDeckId}
-                    deck_name={chosenDeckName}
-                    />
-
-                <Snackbar
-                    open={snackBarOpened}
-                    autoHideDuration={6000}
-                    onClose={snackBarHandleClose}
-                    message={snackbarmessage}
-
-                />
-
-
-
-
-
-                <Fab color="secondary" aria-label="add" sx={{
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                }} onClick={handleFabClick}>
-                    <AddIcon />
-                </Fab>
-
-            </Container>
-
-            </Container>
+        <AppBarWithDrawer username={username} content={content} />
 
     );
 

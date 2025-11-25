@@ -4,7 +4,7 @@ import {
     ButtonGroup,
     Checkbox, CircularProgress,
     ClickAwayListener,
-    FormControlLabel, Grow, IconButton, MenuList, Paper, Popper, Snackbar, Stack,
+    FormControlLabel, Grid, Grow, IconButton, MenuList, Paper, Popper, Snackbar, Stack,
     TextField,
     Typography
 } from "@mui/material";
@@ -18,6 +18,8 @@ import MenuItem from "@mui/material/MenuItem";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Toolbar from "@mui/material/Toolbar";
+import AppBar from "@mui/material/AppBar";
+import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 
 export function CardAddPage(){
 
@@ -301,204 +303,193 @@ export function CardAddPage(){
         }
     }
 
-
-    return (
-        <Box sx={{ width: '100%', minHeight: '100vh' }}>
-            <Bar username={username} />
-
-
-
-            <Container maxWidth="sm" sx={{
-                py: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 'calc(100vh - 64px)'
+    const content = (
+        <Grid item md={3}>
+            <Paper elevation={3} sx={{
+                p: 4,
+                width: '100%',
+                elevation: 0,
+                boxShadow: 'none',
+                border: 'none',
+                backgroundColor: 'transparent'
             }}>
-                <Paper elevation={3} sx={{
-                    p: 4,
-                    width: '100%',
-                    elevation: 0,
-                    boxShadow: 'none',
-                    border: 'none',
-                    backgroundColor: 'transparent'
-                }}>
 
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        gutterBottom
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    gutterBottom
+                    sx={{
+                        fontSize: { xs: '1.5rem', md: '2rem' },
+                        textAlign: 'center',
+                        mb: 3
+                    }}
+                >
+                    Создать карточку
+                </Typography>
+
+
+                <Box component="form"
+                     ref={formRef}
+                     onSubmit={handleSubmit}
+                     sx={{
+                         width: '100%',
+                         display: 'flex',
+                         flexDirection: 'column',
+                         alignItems: 'center',
+                         gap: 3
+                     }}
+                >
+
+                    <Box sx={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2
+                    }}>
+                        <Typography variant="h6" sx={{ minWidth: 80 }}>
+                            Колода
+                        </Typography>
+
+                        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+                            <ButtonGroup
+                                variant="contained"
+                                ref={anchorRef}
+                                aria-label="Button group with a nested menu"
+                                sx={{ width: '100%', maxWidth: 300 }}
+                            >
+                                <Button
+                                    onClick={handleClick}
+                                    sx={{ flexGrow: 1 }}
+                                >
+                                    {decks[selectedIndex] === undefined ? "Загрузка..." : decks[selectedIndex].deck_name}
+                                </Button>
+                                <Button
+                                    size="small"
+                                    aria-controls={open ? 'split-button-menu' : undefined}
+                                    aria-expanded={open ? 'true' : undefined}
+                                    aria-label="select merge strategy"
+                                    aria-haspopup="menu"
+                                    onClick={handleToggle}
+                                >
+                                    <ArrowDropDownIcon />
+                                </Button>
+                            </ButtonGroup>
+                        </Box>
+                    </Box>
+
+
+                    <Popper
+                        sx={{ zIndex: 1 }}
+                        open={open}
+                        anchorEl={anchorRef.current}
+                        role={undefined}
+                        transition
+                        disablePortal
+                    >
+                        {({ TransitionProps, placement }) => (
+                            <Grow
+                                {...TransitionProps}
+                                style={{
+                                    transformOrigin:
+                                        placement === 'bottom' ? 'center top' : 'center bottom',
+                                }}
+                            >
+                                <Paper>
+                                    <ClickAwayListener onClickAway={handleClose}>
+                                        <MenuList id="split-button-menu" autoFocusItem>
+                                            {decks.map((deck, index) => (
+                                                <MenuItem
+                                                    key={deck.deck_name}
+                                                    selected={index === selectedIndex}
+                                                    onClick={(event) => handleMenuItemClick(event, index)}
+                                                >
+                                                    {deck.deck_name}
+                                                </MenuItem>
+                                            ))}
+                                        </MenuList>
+                                    </ClickAwayListener>
+                                </Paper>
+                            </Grow>
+                        )}
+                    </Popper>
+
+
+                    <TextField
+                        autoFocus
+                        required
+                        margin="dense"
+                        id="front_content"
+                        name="front_content"
+                        label="Вопрос"
+                        value={front}
+                        onChange={(e) => setFront(e.target.value)}
+                        fullWidth
+                        variant="standard"
+                        multiline
+                        rows={5}
+                    />
+
+                    <Stack direction="row" spacing={1} sx={{alignItems: 'left'}}>
+                        <IconButton onClick={generateAnswer} >
+                            <PlayArrowIcon/>
+                            ai
+                        </IconButton>
+
+                        {loading && <CircularProgress color="secondary"/>}
+                    </Stack>
+
+
+
+
+
+                    <TextField
+                        required
+                        margin="dense"
+                        id="back_content"
+                        name="back_content"
+                        label="Ответ"
+                        value={back}
+                        fullWidth
+                        variant="standard"
+                        onChange={(e) => setBack(e.target.value)}
+                        multiline
+                        rows={5}
+                    />
+
+
+                    <FormControlLabel
+                        control={<Checkbox onChange={handleCheckBoxChange} />}
+                        label="Создать обратную карточку"
+                        name="with_reversed"
+                        sx={{ alignSelf: 'flex-start' }}
+                    />
+
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="medium"
                         sx={{
-                            fontSize: { xs: '1.5rem', md: '2rem' },
-                            textAlign: 'center',
-                            mb: 3
+                            mt: 2,
+                            px: 4,
+                            py: 1.5
                         }}
                     >
-                        Создать карточку
-                    </Typography>
+                        Создать карточку!
+                    </Button>
 
+                    <Snackbar
+                        open={snackBarOpened}
+                        autoHideDuration={2000}
+                        onClose={snackBarHandleClose}
+                        message={snackbarmessage}
 
-                    <Box component="form"
-                         ref={formRef}
-                         onSubmit={handleSubmit}
-                         sx={{
-                             width: '100%',
-                             display: 'flex',
-                             flexDirection: 'column',
-                             alignItems: 'center',
-                             gap: 3
-                         }}
-                    >
-
-                        <Box sx={{
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2
-                        }}>
-                            <Typography variant="h6" sx={{ minWidth: 80 }}>
-                                Колода
-                            </Typography>
-
-                            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-                                <ButtonGroup
-                                    variant="contained"
-                                    ref={anchorRef}
-                                    aria-label="Button group with a nested menu"
-                                    sx={{ width: '100%', maxWidth: 300 }}
-                                >
-                                    <Button
-                                        onClick={handleClick}
-                                        sx={{ flexGrow: 1 }}
-                                    >
-                                        {decks[selectedIndex] === undefined ? "Загрузка..." : decks[selectedIndex].deck_name}
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        aria-controls={open ? 'split-button-menu' : undefined}
-                                        aria-expanded={open ? 'true' : undefined}
-                                        aria-label="select merge strategy"
-                                        aria-haspopup="menu"
-                                        onClick={handleToggle}
-                                    >
-                                        <ArrowDropDownIcon />
-                                    </Button>
-                                </ButtonGroup>
-                            </Box>
-                        </Box>
-
-
-                        <Popper
-                            sx={{ zIndex: 1 }}
-                            open={open}
-                            anchorEl={anchorRef.current}
-                            role={undefined}
-                            transition
-                            disablePortal
-                        >
-                            {({ TransitionProps, placement }) => (
-                                <Grow
-                                    {...TransitionProps}
-                                    style={{
-                                        transformOrigin:
-                                            placement === 'bottom' ? 'center top' : 'center bottom',
-                                    }}
-                                >
-                                    <Paper>
-                                        <ClickAwayListener onClickAway={handleClose}>
-                                            <MenuList id="split-button-menu" autoFocusItem>
-                                                {decks.map((deck, index) => (
-                                                    <MenuItem
-                                                        key={deck.deck_name}
-                                                        selected={index === selectedIndex}
-                                                        onClick={(event) => handleMenuItemClick(event, index)}
-                                                    >
-                                                        {deck.deck_name}
-                                                    </MenuItem>
-                                                ))}
-                                            </MenuList>
-                                        </ClickAwayListener>
-                                    </Paper>
-                                </Grow>
-                            )}
-                        </Popper>
-
-
-                        <TextField
-                            autoFocus
-                            required
-                            margin="dense"
-                            id="front_content"
-                            name="front_content"
-                            label="Вопрос"
-                            value={front}
-                            onChange={(e) => setFront(e.target.value)}
-                            fullWidth
-                            variant="standard"
-                            multiline
-                            rows={5}
-                        />
-
-                        <Stack direction="row" spacing={1} sx={{alignItems: 'left'}}>
-                            <IconButton onClick={generateAnswer} >
-                                <PlayArrowIcon/>
-                                ai
-                            </IconButton>
-
-                            {loading && <CircularProgress color="secondary"/>}
-                        </Stack>
-
-
-
-
-
-                        <TextField
-                            required
-                            margin="dense"
-                            id="back_content"
-                            name="back_content"
-                            label="Ответ"
-                            value={back}
-                            fullWidth
-                            variant="standard"
-                            onChange={(e) => setBack(e.target.value)}
-                            multiline
-                            rows={5}
-                        />
-
-
-                        <FormControlLabel
-                            control={<Checkbox onChange={handleCheckBoxChange} />}
-                            label="Создать обратную карточку"
-                            name="with_reversed"
-                            sx={{ alignSelf: 'flex-start' }}
-                        />
-
-
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            size="medium"
-                            sx={{
-                                mt: 2,
-                                px: 4,
-                                py: 1.5
-                            }}
-                        >
-                            Создать карточку!
-                        </Button>
-
-                        <Snackbar
-                            open={snackBarOpened}
-                            autoHideDuration={2000}
-                            onClose={snackBarHandleClose}
-                            message={snackbarmessage}
-
-                        />
-                    </Box>
-                </Paper>
-            </Container>
-        </Box>
+                    />
+                </Box>
+            </Paper>
+        </Grid>
+    )
+    return (
+        <AppBarWithDrawer username = {username} content={content}/>
     )
 }

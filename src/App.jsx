@@ -19,6 +19,7 @@ import {CardEditPage} from "./routes/cards/CardEditPage.jsx";
 import "./App.css"
 import {ProfileHandler} from "./routes/overall/ProfileHandler.jsx";
 import {ProjectHandler} from "./routes/overall/ProjectHandler.jsx";
+import {Storage} from "./routes/knowledgebase/Storage.jsx";
 
 
 function App() {
@@ -49,6 +50,8 @@ function App() {
                     <Route path="/cards/addCard" element={<CardAddPage/>} />
                     <Route path="/cards/editCard" element={<CardEditPage/>} />
                     <Route path="/cards/decks" element={<Decks/>} />
+
+                    <Route path="/storage" element={<Storage/>} />
 
 
 

@@ -6,7 +6,7 @@ import {
     Box,
     Button,
     ButtonGroup, Checkbox,
-    ClickAwayListener, FormControlLabel,
+    ClickAwayListener, FormControlLabel, Grid,
     Grow,
     MenuList,
     Paper,
@@ -18,6 +18,7 @@ import {Bar} from "../../elements/Bar.jsx";
 import Container from "@mui/material/Container";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import MenuItem from "@mui/material/MenuItem";
+import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 
 export function CardEditPage(){
 
@@ -233,121 +234,115 @@ export function CardEditPage(){
     }
 
 
-    return (
-        <Box sx={{ width: '100%', minHeight: '100vh' }}>
-            <Bar username={username} />
-
-            <Container maxWidth="sm" sx={{
-                py: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 'calc(100vh - 64px)'
+    const content = (
+        <Grid item md={3}>
+            <Paper elevation={3} sx={{
+                p: 4,
+                width: '100%',
+                elevation: 0,
+                boxShadow: 'none',
+                border: 'none',
+                backgroundColor: 'transparent'
             }}>
-                <Paper elevation={3} sx={{
-                    p: 4,
-                    width: '100%',
-                    elevation: 0,
-                    boxShadow: 'none',
-                    border: 'none',
-                    backgroundColor: 'transparent'
-                }}>
 
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        gutterBottom
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    gutterBottom
+                    sx={{
+                        fontSize: { xs: '1.5rem', md: '2rem' },
+                        textAlign: 'center',
+                        mb: 3
+                    }}
+                >
+                    Редактировать карточку
+                </Typography>
+
+
+                <Box component="form"
+                     ref={formRef}
+                     onSubmit={handleSubmit}
+                     sx={{
+                         width: '100%',
+                         display: 'flex',
+                         flexDirection: 'column',
+                         alignItems: 'center',
+                         gap: 3
+                     }}
+                >
+
+
+
+
+
+
+                    {/* Поля формы */}
+                    <TextField
+                        autoFocus
+                        required
+                        margin="dense"
+                        id="front_content"
+                        name="front_content"
+                        label="Вопрос"
+                        fullWidth
+                        variant="standard"
+                        multiline
+                        value={front}
+                        onChange={(e) => setFront(e.target.value)}
+                        rows={5}
+                    />
+
+                    <TextField
+                        required
+                        margin="dense"
+                        id="back_content"
+                        name="back_content"
+                        value={back}
+                        onChange={(e) => {setBack(e.target.value)}}
+                        label="Ответ"
+                        fullWidth
+                        variant="standard"
+                        multiline
+                        rows={5}
+                    />
+
+
+
+                    {/* Кнопка отправки */}
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="medium"
                         sx={{
-                            fontSize: { xs: '1.5rem', md: '2rem' },
-                            textAlign: 'center',
-                            mb: 3
+                            mt: 2,
+                            px: 4,
+                            py: 1.5
                         }}
                     >
-                        Редактировать карточку
-                    </Typography>
+                        Внести изменения
+                    </Button>
 
-
-                    <Box component="form"
-                         ref={formRef}
-                         onSubmit={handleSubmit}
-                         sx={{
-                             width: '100%',
-                             display: 'flex',
-                             flexDirection: 'column',
-                             alignItems: 'center',
-                             gap: 3
-                         }}
+                    <Button
+                        onClick={()=>{
+                            navigate("/cards/repeat?deck_id="+card.deck_id)
+                        }}
+                        variant="contained"
+                        size="medium"
+                        sx={{
+                            mt: 2,
+                            px: 4,
+                            py: 1.5
+                        }}
                     >
+                        К повторению
+                    </Button>
+                </Box>
+            </Paper>
+        </Grid>
+    )
 
 
-
-
-
-
-                        {/* Поля формы */}
-                        <TextField
-                            autoFocus
-                            required
-                            margin="dense"
-                            id="front_content"
-                            name="front_content"
-                            label="Вопрос"
-                            fullWidth
-                            variant="standard"
-                            multiline
-                            value={front}
-                            onChange={(e) => setFront(e.target.value)}
-                            rows={5}
-                        />
-
-                        <TextField
-                            required
-                            margin="dense"
-                            id="back_content"
-                            name="back_content"
-                            value={back}
-                            onChange={(e) => {setBack(e.target.value)}}
-                            label="Ответ"
-                            fullWidth
-                            variant="standard"
-                            multiline
-                            rows={5}
-                        />
-
-
-
-                        {/* Кнопка отправки */}
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            size="medium"
-                            sx={{
-                                mt: 2,
-                                px: 4,
-                                py: 1.5
-                            }}
-                        >
-                            Внести изменения
-                        </Button>
-
-                        <Button
-                            onClick={()=>{
-                                navigate("/cards/repeat?deck_id="+card.deck_id)
-                            }}
-                            variant="contained"
-                            size="medium"
-                            sx={{
-                                mt: 2,
-                                px: 4,
-                                py: 1.5
-                            }}
-                        >
-                            К повторению
-                        </Button>
-                    </Box>
-                </Paper>
-            </Container>
-        </Box>
+    return (
+        <AppBarWithDrawer username = {username} content = {content} />
     )
 }

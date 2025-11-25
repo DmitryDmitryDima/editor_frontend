@@ -3,9 +3,10 @@ import {useNavigate, useSearchParams} from 'react-router-dom';
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import {Bar} from "../../elements/Bar.jsx";
-import {Box, Button, ButtonGroup, Fab, Grid, Stack, Typography} from "@mui/material";
+import {Box, Button, ButtonGroup, Divider, Fab, Grid, Stack, Typography} from "@mui/material";
 import Container from "@mui/material/Container";
 import AddIcon from "@mui/icons-material/Add";
+import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 
 
 
@@ -220,112 +221,120 @@ export function CardRepeater() {
     }
 
 
+    const content = (
+        <Grid item md={3}>
+            {isEmpty ? (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            fontSize: { xs: '1.5rem', md: '2rem' },
+                            textAlign: 'center',
+                            mb: 2
+                        }}
+                    >
+                        Карточек для изучения нет
+                    </Typography>
+
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 16,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                        }}
+                    >
+                        <Fab variant="extended" onClick={() => {
+                            navigate("/cards/decks");
+                        }}>
+                            К колодам
+                        </Fab>
+                    </Stack>
+                </Box>
+
+            ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
+                    <Typography sx={{
+                        fontSize: { xs: '1.5rem', md: '2rem' },
+                        textAlign: 'center'
+                    }}>
+                        {isFront ? card.front_content : card.back_content}
+                    </Typography>
+
+                    <Divider></Divider>
+
+                    {isFront &&
+                        <Button onClick={() => setIsFront(!isFront)} variant="contained">
+                            Показать ответ
+                        </Button>
+                    }
+
+                    {!isFront &&
+                        <Typography sx={{ textAlign: 'center' }}>
+                            Как тяжело было вспомнить?
+                        </Typography>
+                    }
+
+                    {!isFront &&
+                        <ButtonGroup variant="contained" size="small" sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button onClick={() => { sendCardToServer("Again"); }}>Оч сложно</Button>
+                            <Button onClick={() => { sendCardToServer("Hard"); }}>Сложно</Button>
+                            <Button onClick={() => { sendCardToServer("Good"); }}>Норм</Button>
+                            <Button onClick={() => { sendCardToServer("Easy"); }}>Изи</Button>
+                        </ButtonGroup>
+                    }
+
+                    <Stack
+                        direction="row"
+                        spacing={2}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 16,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                        }}
+                    >
+                        <Fab variant="extended" onClick={handleDelete} sx={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)', // полупрозрачный белый
+                            backdropFilter: 'blur(10px)', // размытие фона
+                            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', // мягкая тень
+                            border: '1px solid rgba(255, 255, 255, 0.2)', // тонкая граница
+                        }}>
+                            Удалить
+                        </Fab>
+
+                        <Fab variant="extended" sx={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)', // полупрозрачный белый
+                            backdropFilter: 'blur(10px)', // размытие фона
+                            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', // мягкая тень
+                            border: '1px solid rgba(255, 255, 255, 0.2)', // тонкая граница
+                        }} onClick={() => {
+                            navigate("/cards/editCard?&card_id=" + card.card_id);
+                        }}>
+                            Изменить
+                        </Fab>
+                    </Stack>
+                </Box>
+            )}
+        </Grid>
+    )
+
+
 
     return (
 
 
 
-        <Box sx={{ display:"flex",
-            justifyContent:"center",
-            alignItems:"center",
-            minHeight:"100vh"}}>
-            <Bar username={username} />
-            <Container  sx={{
-
-            }}>
-
-                {isEmpty ? (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                fontSize: { xs: '1.5rem', md: '2rem' },
-                                textAlign: 'center',
-                                mb: 2
-                            }}
-                        >
-                            Карточек для изучения нет
-                        </Typography>
-
-                        <Stack
-                            direction="row"
-                            spacing={2}
-                            sx={{
-                                position: 'fixed',
-                                bottom: 16,
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                            }}
-                        >
-                            <Fab variant="extended" onClick={() => {
-                                navigate("/cards/decks");
-                            }}>
-                                К колодам
-                            </Fab>
-                        </Stack>
-                    </Box>
-
-                ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 2 }}>
-                        <Typography sx={{
-                            fontSize: { xs: '1.5rem', md: '2rem' },
-                            textAlign: 'center'
-                        }}>
-                            {isFront ? card.front_content : card.back_content}
-                        </Typography>
-
-                        {isFront &&
-                            <Button onClick={() => setIsFront(!isFront)} variant="contained">
-                                Показать ответ
-                            </Button>
-                        }
-
-                        {!isFront &&
-                            <Typography sx={{ textAlign: 'center' }}>
-                                Как тяжело было вспомнить?
-                            </Typography>
-                        }
-
-                        {!isFront &&
-                            <ButtonGroup variant="contained" size="small" sx={{ display: 'flex', justifyContent: 'center' }}>
-                                <Button onClick={() => { sendCardToServer("Again"); }}>Оч сложно</Button>
-                                <Button onClick={() => { sendCardToServer("Hard"); }}>Сложно</Button>
-                                <Button onClick={() => { sendCardToServer("Good"); }}>Норм</Button>
-                                <Button onClick={() => { sendCardToServer("Easy"); }}>Изи</Button>
-                            </ButtonGroup>
-                        }
-
-                        <Stack
-                            direction="row"
-                            spacing={2}
-                            sx={{
-                                position: 'fixed',
-                                bottom: 16,
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                            }}
-                        >
-                            <Fab variant="extended" onClick={handleDelete}>
-                                Удалить
-                            </Fab>
-
-                            <Fab variant="extended" onClick={() => {
-                                navigate("/cards/editCard?&card_id=" + card.card_id);
-                            }}>
-                                Изменить
-                            </Fab>
-                        </Stack>
-                    </Box>
-                )}
-            </Container>
-        </Box>
+        <AppBarWithDrawer username={username} content={content} />
 
     );
 
