@@ -42,9 +42,10 @@ export default function ProjectCreationDialog(props) {
 
 
     const handleClose = () => {
-        props.setDialogState("PREPARING")
+        props.changeDialogState("PREPARING");
+        props.changeCorrelationId(null);
         props.close(true);
-        props.setCorrelationId("");
+
 
     };
 
@@ -54,6 +55,9 @@ export default function ProjectCreationDialog(props) {
         e.preventDefault();
         // X-Correlation-ID
         const correlationId = uuid();
+
+        props.changeCorrelationId(correlationId);
+
         const formData = new FormData(e.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
         console.log(formJson);
@@ -69,26 +73,29 @@ export default function ProjectCreationDialog(props) {
         })
 
         console.log(body);
-        console.log(correlationId)
+        console.log(correlationId+' set inside dialog');
 
 
         try {
             const response = await props.api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Correlation-ID": correlationId}});
+            console.log(response);
             if (response.status === 204) {
                 // todo переход в режим ожидания
-                props.setDialogState("WAITING")
+                props.changeDialogState("WAITING");
             }
             else {
                 console.log(response)
                 // todo уведомление о том, что ошибка на сервере
-                props.setDialogState("FAIL")
+                props.changeDialogState("FAIL")
             }
         }
         catch (error) {
             // todo уведомление об ошибке на сервере
             console.log(error)
-            props.setDialogState("FAIL")
+            props.changeDialogState("FAIL")
         }
+
+
 
 
 
@@ -127,7 +134,7 @@ export default function ProjectCreationDialog(props) {
                 <DialogContent sx={{ paddingBottom: 0 }}>
 
 
-                    {props.dialogState === "PREPARING" &&
+                    {props.state === "PREPARING" &&
 
                         <form onSubmit={handleSubmit}>
                             <Box mb={3}>
@@ -208,17 +215,17 @@ export default function ProjectCreationDialog(props) {
 
                     }
 
-                    {props.dialogState === "WAITING" &&<Box mb={3}>
+                    {props.state === "WAITING" &&<Box mb={3}>
 
                         <Typography>Создание проекта...</Typography>
                     </Box>}
 
 
-                    {props.dialogState === "SUCCESS" &&<Box mb={3}>
+                    {props.state === "SUCCESS" &&<Box mb={3}>
                         <Typography>Проект успешно создан</Typography>
                     </Box>}
 
-                    {props.dialogState==="FAIL" && <Box mb={3}>
+                    {props.state==="FAIL" && <Box mb={3}>
                         <Typography>Ошибка</Typography>
                     </Box>}
 

@@ -1,5 +1,5 @@
 import {Bar} from "../../elements/Bar.jsx";
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import Container from "@mui/material/Container";
 import {Box, Fab, Grid, IconButton, Stack, styled, Typography} from "@mui/material";
 import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
@@ -23,10 +23,12 @@ export function UserOwnProjects(props) {
 
 
     // PREPARING, WAITING, SUCCESS, FAIL
-    const [creationDialogState, setCreationDialogState] = React.useState("PREPARING")
-    const [creationDialogCorrelationId, setCreationDialogCorrelationId] = React.useState("");
+    const [creationDialogState, setCreationDialogState] = useState("PREPARING");
+    const creationDialogStateRef = useRef("PREPARING");
+    const creationDialogCorrelationIdRef = useRef(null);
 
     const [projectCreationDialogOpen, setProjectCreationDialogOpen] = useState(false);
+    const[creationDialogCorrelationId, setCreationDialogCorrelationId] = useState("");
 
     const closeProjectCreationDialog=()=> {setProjectCreationDialogOpen(false);
         console.log("creation dialog closed");
@@ -206,22 +208,27 @@ export function UserOwnProjects(props) {
 
 
 
-    const creationEventProcessing = (data) => {
+    const creationEventProcessing = useCallback((data) => {
         let status = data.eventData.status;
+        console.log(status);
+        console.log(data.context.correlationId, "inside creation event");
+        console.log(creationDialogCorrelationIdRef +" inside parent while comparison")
 
         // если диалог, породивший ивент, открыт, меняем его состояние
         // если закрыт - выбрасываем уведомление
         if (status==="FAIL"){
-            if (data.context.correlationId===creationDialogCorrelationId){
-                setCreationDialogState("FAIL")
+            if (data.context.correlationId===creationDialogCorrelationIdRef.current){
+                creationDialogStateRef.current = "FAIL";
+                setCreationDialogState("FAIL");
             }
         }
         if (status==="SUCCESS"){
-            if (data.context.correlationId===creationDialogCorrelationId){
-                setCreationDialogState("SUCCESS")
+            if (data.context.correlationId===creationDialogCorrelationIdRef.current){
+                creationDialogStateRef.current = "SUCCESS";
+                setCreationDialogState("SUCCESS");
             }
         }
-    }
+    }, [creationDialogCorrelationIdRef]);
 
 
 
@@ -240,10 +247,20 @@ export function UserOwnProjects(props) {
             </Stack>
 
             <ProjectCreationDialog api = {api} opened={projectCreationDialogOpen} close={closeProjectCreationDialog}
-                                   dialogState={creationDialogState}
-                                   setDialogState={setCreationDialogState}
-                                   correlationId={creationDialogCorrelationId}
-                                   setCorrelationId={setCreationDialogCorrelationId}
+
+                                   state={creationDialogState}
+
+                                   changeCorrelationId={(value)=>{
+                                       creationDialogCorrelationIdRef.current = value;
+                                       setCreationDialogCorrelationId(value)
+                                   }}
+
+                                   changeDialogState={(value)=>{
+                                       creationDialogStateRef.current = value;
+                                       setCreationDialogState(value)
+
+                                   }}
+
             >
 
             </ProjectCreationDialog>
