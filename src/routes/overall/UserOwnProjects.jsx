@@ -1,50 +1,229 @@
 import {Bar} from "../../elements/Bar.jsx";
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Container from "@mui/material/Container";
-import {Grid, Typography} from "@mui/material";
+import {Box, Fab, Grid, IconButton, Stack, styled, Typography} from "@mui/material";
 import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 import { Client } from '@stomp/stompjs';
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import {jwtDecode} from "jwt-decode";
+import axios from "axios";
+import ProjectCardComponent from "./ProjectCardComponent.jsx";
+import ProjectCreationDialog from "./ProjectCreationDialog.jsx";
+import AddIcon from "@mui/icons-material/Add";
 
 export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
     const {username, uuid} = props;
 
+    const [javaProjects, setJavaProjects] = useState([]);
 
-    const location = useLocation();
+    const clientRef = useRef(null);
 
-    const client = new Client({
-        brokerURL: 'ws://localhost:8080/notifications',
+    const navigate = useNavigate();
 
-        debug: function (str) {
-            console.log(str);
-        },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 4000,
-        heartbeatOutgoing: 4000,
+
+    // PREPARING, WAITING, SUCCESS, FAIL
+    const [creationDialogState, setCreationDialogState] = React.useState("PREPARING")
+    const [creationDialogCorrelationId, setCreationDialogCorrelationId] = React.useState("");
+
+    const [projectCreationDialogOpen, setProjectCreationDialogOpen] = useState(false);
+
+    const closeProjectCreationDialog=()=> {setProjectCreationDialogOpen(false);
+        console.log("creation dialog closed");
+    };
+    const openProjectCreationDialog = ()=> {setProjectCreationDialogOpen(true);
+        console.log("open dialog open");
+    };
+
+
+
+
+    // api для общения с сервисами
+    const api = axios.create({
+        baseURL: '/api/',
     });
 
-    client.onConnect = function (frame) {
-        // Do something; all subscriptions must be done in this callback.
-        // This is needed because it runs after a (re)connect.
-        client.subscribe("/users/activity/"+uuid, (message) => {
+    // управление токенами
+    // Add a request interceptor
+    api.interceptors.request.use(
+        async (config) => {
 
-            const update = JSON.parse(message.body);
-            console.log(update);
+            const token = localStorage.getItem('accessToken');
 
-        });
-    };
+            const decoded = jwtDecode(token);
+            const exp = decoded.exp;
+            const now = Math.floor(Date.now() / 1000)
+            if (token && exp>now) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            else {
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (!refreshToken) {
+                        throw new Error('invalid refreshToken');
+                    }
+                    const response = await axios.post('/auth/refresh', { refreshToken });
 
-    client.onStompError = function (frame) {
-        // Invoked when the broker reports an error.
-        // Bad login/passcode typically causes an error.
-        // Compliant brokers set the `message` header with a brief message; the body may contain details.
-        // Compliant brokers terminate the connection after any error.
-        console.log('Broker reported error: ' + frame.headers['message']);
-        console.log('Additional details: ' + frame.body);
-    };
 
-    client.activate();
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                    localStorage.setItem("refreshToken", response.data.refreshToken);
+                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
+                } catch (error) {
+                    throw new Error('invalid refresh');
+                }
+            }
+            return config;
+        },
+        (error) => {
+
+            Promise.reject(error)
+        }
+    );
+
+    // Add a response interceptor
+    api.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+
+            console.log(error)
+
+            // If the error status is 401 and there is no originalRequest._retry flag,
+            // it means the token has expired and we need to refresh it
+            if (error.response.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (!refreshToken) {
+                        throw new Error('invalid refreshToken');
+                    }
+                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
+                    // Retry the original request with the new token
+                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+                    return axios(originalRequest);
+                } catch (error) {
+                    navigate('/login');
+                }
+            }
+
+            return Promise.reject(error);
+        }
+    );
+
+
+
+
+
+
+
+    useEffect(() => {
+
+        loadJavaProjects();
+
+        if (!clientRef.current) {
+            const client = new Client({
+                brokerURL: '/ws/notifications',
+
+                debug: function (str) {
+                    console.log(str);
+                },
+                reconnectDelay: 5000,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000,
+            });
+
+            client.onConnect = function (frame) {
+                // Do something; all subscriptions must be done in this callback.
+                // This is needed because it runs after a (re)connect.
+                client.subscribe("/users/activity/"+uuid, (message) => {
+
+                    const update = JSON.parse(message.body);
+
+                    if (update.event_type==="java_project_creation") {
+                        creationEventProcessing(update);
+                    }
+                    console.log(update);
+
+                });
+            };
+
+            client.onStompError = function (frame) {
+                // Invoked when the broker reports an error.
+                // Bad login/passcode typically causes an error.
+                // Compliant brokers set the `message` header with a brief message; the body may contain details.
+                // Compliant brokers terminate the connection after any error.
+                console.log('Broker reported error: ' + frame.headers['message']);
+                console.log('Additional details: ' + frame.body);
+            };
+
+            client.activate();
+            clientRef.current = client;
+        }
+
+        return () => {
+            if (clientRef.current) {
+
+
+                clientRef.current.deactivate().then(() => {
+                    console.log('disconnected');
+                });
+                clientRef.current = null;
+
+            }
+
+        }
+
+
+
+
+    }, []);
+
+
+    const loadJavaProjects = async () => {
+        try {
+            const response = await api.get('/projects/java/getProjects?targetUsername='+username);
+
+            if (response.status === 200) {
+
+                setJavaProjects(response.data);
+            }
+            else {
+                console.log(response.status);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+
+
+
+    const creationEventProcessing = (data) => {
+        let status = data.eventData.status;
+
+        // если диалог, породивший ивент, открыт, меняем его состояние
+        // если закрыт - выбрасываем уведомление
+        if (status==="FAIL"){
+            if (data.context.correlationId===creationDialogCorrelationId){
+                setCreationDialogState("FAIL")
+            }
+        }
+        if (status==="SUCCESS"){
+            if (data.context.correlationId===creationDialogCorrelationId){
+                setCreationDialogState("SUCCESS")
+            }
+        }
+    }
+
+
 
 
 
@@ -54,7 +233,35 @@ export function UserOwnProjects(props) {
 
     const content = (
         <Grid item md={3}>
-            <Typography>project for {uuid}</Typography>
+            <Stack direction="column" spacing={2}>
+            {javaProjects.map(project => (
+                <ProjectCardComponent language = "JAVA" name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+            ))}
+            </Stack>
+
+            <ProjectCreationDialog api = {api} opened={projectCreationDialogOpen} close={closeProjectCreationDialog}
+                                   dialogState={creationDialogState}
+                                   setDialogState={setCreationDialogState}
+                                   correlationId={creationDialogCorrelationId}
+                                   setCorrelationId={setCreationDialogCorrelationId}
+            >
+
+            </ProjectCreationDialog>
+
+            <Box
+                sx={{
+                    position: 'fixed',
+                    bottom: 16, // Adjust as needed for desired spacing from bottom
+                    right: 16, // Adjust as needed for desired spacing from right
+                }}
+            >
+                <Fab onClick={openProjectCreationDialog} color="secondary" aria-label="add">
+                    <AddIcon />
+                </Fab>
+            </Box>
+
+
+
         </Grid>
     )
 

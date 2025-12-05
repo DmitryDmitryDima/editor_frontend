@@ -30,9 +30,9 @@ export function ProjectHandler() {
 
     return (
         <div>
-            {username===authUsername &&  <UserOwnProjects username={authUsername} uuid={uuid} />}
+            {username===authUsername&&  <UserOwnProjects username={authUsername} uuid={uuid} />}
             {authUsername==="" && <p>Гость смотрит чьи то проекты</p>}
-            {authUsername!==username && <p>Я смотрю чужие проекты</p>}
+            {username!==authUsername && <p>Я смотрю чужие проекты</p>}
         </div>
     )
 

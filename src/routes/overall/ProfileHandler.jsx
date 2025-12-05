@@ -30,7 +30,7 @@ export function ProfileHandler() {
         <div>
             {username===authUsername && <UserOwnProfile username={authUsername} uuid={uuid} />}
             {authUsername==="" && <p>Hello guest</p>}
-            {authUsername!==username && <p>You see another user page</p>}
+            {username!==authUsername && <p>You see another user page</p>}
         </div>
     )
 
