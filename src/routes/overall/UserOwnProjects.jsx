@@ -10,6 +10,7 @@ import axios from "axios";
 import ProjectCardComponent from "./ProjectCardComponent.jsx";
 import ProjectCreationDialog from "./ProjectCreationDialog.jsx";
 import AddIcon from "@mui/icons-material/Add";
+import {ProjectRemovalDialog} from "./ProjectRemovalDialog.jsx";
 
 export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
@@ -22,20 +23,64 @@ export function UserOwnProjects(props) {
     const navigate = useNavigate();
 
 
+    /*
+
+    ----! Параметры диалога создания проекта !----
+
+     */
     // PREPARING, WAITING, SUCCESS, FAIL
     const [creationDialogState, setCreationDialogState] = useState("PREPARING");
+    const [creationDialogMessage, setCreationDialogMessage] = useState("");
     const creationDialogStateRef = useRef("PREPARING");
     const creationDialogCorrelationIdRef = useRef(null);
 
     const [projectCreationDialogOpen, setProjectCreationDialogOpen] = useState(false);
     const[creationDialogCorrelationId, setCreationDialogCorrelationId] = useState("");
 
-    const closeProjectCreationDialog=()=> {setProjectCreationDialogOpen(false);
+    const closeProjectCreationDialog=()=> {
+        setProjectCreationDialogOpen(false);
+
+
         console.log("creation dialog closed");
     };
+
     const openProjectCreationDialog = ()=> {setProjectCreationDialogOpen(true);
         console.log("open dialog open");
     };
+
+
+    /*
+
+    ----! Параметры диалога удаления проекта !----
+
+     */
+
+    // PREPARING, WAITING, SUCCESS, FAIL
+    const [removalDialogState, setRemovalDialogState] = useState("PREPARING");
+    const [removalDialogProjectName, setRemovalDialogProjectName] = useState("");
+    const [removalDialogProjectId, setRemovalDialogProjectId] = useState(null);
+    const removalDialogStateRef = useRef("PREPARING");
+    const removalDialogCorrelationIdRef = useRef(null);
+
+    const [projectRemovalDialogOpen, setProjectRemovalDialogOpen] = useState(false);
+    const[removalDialogCorrelationId, setRemovalDialogCorrelationId] = useState("");
+
+    const closeProjectRemovalDialog=()=> {
+        setProjectRemovalDialogOpen(false);
+
+
+        console.log("removal dialog closed");
+    };
+
+    const openProjectRemovalDialog = (project_name, project_id)=> {
+        setRemovalDialogProjectName(project_name);
+        setRemovalDialogProjectId(project_id);
+        setProjectRemovalDialogOpen(true);
+        console.log("removal dialog open for", project_id);
+    };
+
+
+
 
 
 
@@ -151,6 +196,9 @@ export function UserOwnProjects(props) {
                     if (update.event_type==="java_project_creation") {
                         creationEventProcessing(update);
                     }
+                    if (update.event_type==="java_project_removal"){
+                        removalEventProcessing(update)
+                    }
                     console.log(update);
 
                 });
@@ -206,7 +254,31 @@ export function UserOwnProjects(props) {
     }
 
 
+    const removalEventProcessing = useCallback((data)=>{
+        let status = data.eventData.status;
 
+        if (status==="FAIL"){
+
+            if (data.context.correlationId===removalDialogCorrelationIdRef.current){
+                removalDialogStateRef.current = "FAIL";
+                setRemovalDialogState("FAIL");
+            }
+        }
+        if (status==="SUCCESS"){
+            console.log("here");
+
+            if (data.context.correlationId===removalDialogCorrelationIdRef.current){
+                removalDialogStateRef.current = "SUCCESS";
+                setRemovalDialogState("SUCCESS");
+
+
+            }
+
+            loadJavaProjects()
+        }
+
+
+    }, [removalDialogCorrelationIdRef])
 
     const creationEventProcessing = useCallback((data) => {
         let status = data.eventData.status;
@@ -218,6 +290,7 @@ export function UserOwnProjects(props) {
         // если закрыт - выбрасываем уведомление
         if (status==="FAIL"){
             if (data.context.correlationId===creationDialogCorrelationIdRef.current){
+                setCreationDialogMessage(data.message)
                 creationDialogStateRef.current = "FAIL";
                 setCreationDialogState("FAIL");
             }
@@ -226,7 +299,11 @@ export function UserOwnProjects(props) {
             if (data.context.correlationId===creationDialogCorrelationIdRef.current){
                 creationDialogStateRef.current = "SUCCESS";
                 setCreationDialogState("SUCCESS");
+
+
             }
+
+            loadJavaProjects()
         }
     }, [creationDialogCorrelationIdRef]);
 
@@ -242,7 +319,8 @@ export function UserOwnProjects(props) {
         <Grid item md={3}>
             <Stack direction="column" spacing={2}>
             {javaProjects.map(project => (
-                <ProjectCardComponent language = "JAVA" name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+                <ProjectCardComponent language = "JAVA" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
+                    project.id)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
             ))}
             </Stack>
 
@@ -260,10 +338,33 @@ export function UserOwnProjects(props) {
                                        setCreationDialogState(value)
 
                                    }}
+                                   message = {creationDialogMessage}
+                                   setMessage={setCreationDialogMessage}
 
             >
 
             </ProjectCreationDialog>
+
+            <ProjectRemovalDialog api={api} opened={projectRemovalDialogOpen} close={closeProjectRemovalDialog}
+                                  state={removalDialogState}
+                                  changeCorrelationId={(value)=>{
+                                      removalDialogCorrelationIdRef.current = value;
+                                      setRemovalDialogCorrelationId(value)
+                                  }}
+
+                                  changeDialogState={(value)=>{
+                                      removalDialogStateRef.current = value;
+                                      setRemovalDialogState(value)
+
+                                  }}
+
+                                  projectId={removalDialogProjectId}
+                                  projectName={removalDialogProjectName}
+
+                                  >
+
+            </ProjectRemovalDialog>
+
 
             <Box
                 sx={{

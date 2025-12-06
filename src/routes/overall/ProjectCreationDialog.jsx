@@ -68,7 +68,7 @@ export default function ProjectCreationDialog(props) {
             projectType: type,
             name: formJson.project_name,
             prompt: formJson.project_prompt,
-            needEntryPoint:formJson.need_entry===null
+            needEntryPoint:formJson.need_entry!==null
 
         })
 
@@ -85,6 +85,7 @@ export default function ProjectCreationDialog(props) {
             }
             else {
                 console.log(response)
+                props.setMessage(response.status)
                 // todo уведомление о том, что ошибка на сервере
                 props.changeDialogState("FAIL")
             }
@@ -92,6 +93,7 @@ export default function ProjectCreationDialog(props) {
         catch (error) {
             // todo уведомление об ошибке на сервере
             console.log(error)
+            props.setMessage(response.status)
             props.changeDialogState("FAIL")
         }
 
@@ -227,6 +229,7 @@ export default function ProjectCreationDialog(props) {
 
                     {props.state==="FAIL" && <Box mb={3}>
                         <Typography>Ошибка</Typography>
+                        <Typography>{props.message}</Typography>
                     </Box>}
 
 

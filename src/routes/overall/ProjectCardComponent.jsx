@@ -16,6 +16,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
+import {v4 as uuid} from "uuid";
 
 const ExpandMore = styled((props) => {
     const { expand, ...other } = props;
@@ -50,6 +51,39 @@ export default function ProjectCardComponent(props) {
         setExpanded(!expanded);
     };
 
+    const removeButtonClick = async () => {
+        props.openRemoveDialog()
+        /*
+        let address = "/projects/java/deleteProject"
+        const correlationId = uuid();
+
+        let body = JSON.stringify({
+            projectId: props.id
+        })
+        console.log(body)
+
+        try {
+            const response = await props.api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+
+            }
+            else {
+                console.log(response)
+                // todo уведомление о том, что ошибка на сервере
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            console.log(error)
+
+        }
+
+         */
+    }
+
     return (
         <Card sx={{ maxWidth: 345 , backgroundColor: 'rgba(255, 0, 255, 0.2)', boxShadow: 2 }}>
             <CardHeader
@@ -82,7 +116,9 @@ export default function ProjectCardComponent(props) {
                 <IconButton aria-label="start">
                     <PlayArrowIcon />
                 </IconButton>
-                <IconButton aria-label="delete">
+                <IconButton aria-label="delete" onClick={()=>{
+                    removeButtonClick()
+                }}>
                     <DeleteIcon />
                 </IconButton>
                 <ExpandMore
