@@ -158,8 +158,8 @@ export function JavaProjectAppBar(props) {
                     {drawer}
                 </Drawer>
             </nav>
-            <Box component="main" sx={{ p: 1 }}>
-                <Toolbar />
+            <Box component="main" >
+                <Toolbar variant={"dense"} />
                 {content}
             </Box>
         </Box>
