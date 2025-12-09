@@ -319,7 +319,7 @@ export function UserOwnProjects(props) {
         <Grid item md={3}>
             <Stack direction="column" spacing={2}>
             {javaProjects.map(project => (
-                <ProjectCardComponent language = "JAVA" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
+                <ProjectCardComponent language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
                     project.id)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
             ))}
             </Stack>

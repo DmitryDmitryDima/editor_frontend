@@ -17,6 +17,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {v4 as uuid} from "uuid";
+import {useNavigate} from "react-router-dom";
 
 const ExpandMore = styled((props) => {
     const { expand, ...other } = props;
@@ -44,6 +45,7 @@ const ExpandMore = styled((props) => {
 
 export default function ProjectCardComponent(props) {
     const [expanded, setExpanded] = React.useState(false);
+    const navigate = useNavigate();
 
     // props {name, id, language, status}
 
@@ -53,36 +55,10 @@ export default function ProjectCardComponent(props) {
 
     const removeButtonClick = async () => {
         props.openRemoveDialog()
-        /*
-        let address = "/projects/java/deleteProject"
-        const correlationId = uuid();
 
-        let body = JSON.stringify({
-            projectId: props.id
-        })
-        console.log(body)
-
-        try {
-            const response = await props.api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Correlation-ID": correlationId}});
-            console.log(response);
-            if (response.status === 204) {
-                // todo переход в режим ожидания
-
-            }
-            else {
-                console.log(response)
-                // todo уведомление о том, что ошибка на сервере
-
-            }
-        }
-        catch (error) {
-            // todo уведомление об ошибке на сервере
-            console.log(error)
-
-        }
-
-         */
     }
+
+
 
     return (
         <Card sx={{ maxWidth: 345 , backgroundColor: 'rgba(255, 0, 255, 0.2)', boxShadow: 2 }}>
@@ -113,7 +89,9 @@ export default function ProjectCardComponent(props) {
                 </Typography>
             </CardContent>
             <CardActions disableSpacing>
-                <IconButton aria-label="start">
+                <IconButton aria-label="start" onClick={()=>{
+                    navigate("/workplace/projects/"+props.language+"/"+props.id)
+                }}>
                     <PlayArrowIcon />
                 </IconButton>
                 <IconButton aria-label="delete" onClick={()=>{

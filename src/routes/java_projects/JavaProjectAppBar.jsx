@@ -17,7 +17,7 @@ import Toolbar from "@mui/material/Toolbar";
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from '@mui/material/Link';
 
-export function AppBarWithDrawer(props) {
+export function JavaProjectAppBar(props) {
 
 
     const username = props.username
@@ -113,7 +113,7 @@ export function AppBarWithDrawer(props) {
                 boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', // мягкая тень
                 border: '1px solid rgba(255, 255, 255, 0.2)', // тонкая граница
             }}>
-                <Toolbar >
+                <Toolbar variant={"dense"} >
                     <IconButton
 
                         aria-label="open drawer"
@@ -158,7 +158,7 @@ export function AppBarWithDrawer(props) {
                     {drawer}
                 </Drawer>
             </nav>
-            <Box  component="main" sx={{ p: 3 }}>
+            <Box component="main" sx={{ p: 1 }}>
                 <Toolbar />
                 {content}
             </Box>
