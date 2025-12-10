@@ -21,6 +21,7 @@ import {ProfileHandler} from "./routes/overall/ProfileHandler.jsx";
 import {ProjectHandler} from "./routes/overall/ProjectHandler.jsx";
 import {Storage} from "./routes/knowledgebase/Storage.jsx";
 import {JavaProject} from "./routes/java_projects/JavaProject.jsx";
+import {JavaProjectUnitedPage} from "./routes/java_projects/JavaProjectUnitedPage.jsx";
 
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
 
                     <Route path="/users/:username/projects" element={<ProjectHandler/>} />
 
-                    <Route path="/workplace/projects/java/:project_id" element={<JavaProject />} />
+                    <Route path="/workplace/projects/java/:project_id" element={<JavaProjectUnitedPage />} />
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />
