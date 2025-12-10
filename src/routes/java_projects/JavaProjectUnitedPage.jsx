@@ -63,19 +63,21 @@ export function JavaProjectUnitedPage() {
         {
             id: "3",
             name: "Chat Rooms",
+            type:"folder",
             children: [
-                { id: "c1", name: "General" },
-                { id: "c2", name: "Random" },
-                { id: "c3", name: "Open Source Projects" },
+                { id: "c1", name: "General", type:"file" },
+                { id: "c2", name: "Random", type:"file" },
+                { id: "c3", name: "Open Source Projects", type:"folder", children:[{id:"xxx", name:"deep", type:"file"}] },
             ],
         },
         {
             id: "4",
             name: "Direct Messages",
+            type: "folder",
             children: [
-                { id: "d1", name: "Alice" },
-                { id: "d2", name: "Bob" },
-                { id: "d3", name: "Charlie" },
+                { id: "d1", name: "Alice", type: "file" },
+                { id: "d2", name: "Bob" , type: "file" },
+                { id: "d3", name: "Charlie", type: "file" },
             ],
         },
     ];
@@ -183,7 +185,9 @@ export function JavaProjectUnitedPage() {
                             ref={dragHandle} onClick={() => node.toggle()}
                         >
             <span style={{ marginRight: "8px" }}>
-              {node.isLeaf ? <FaFile /> : <FaFolder />}
+              {
+
+                  node.data.type==="file"? <FaFile /> : <FaFolder />}
             </span>
                             <span>{node.data.name}</span>
                         </div>
@@ -402,6 +406,7 @@ export function JavaProjectUnitedPage() {
                         setIsJavaFile(!isJavaFile);
                         console.log(javaValueRef.current);
                         setValueJava(javaValueRef.current);
+
 
 
 
