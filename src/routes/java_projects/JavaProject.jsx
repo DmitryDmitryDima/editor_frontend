@@ -1,7 +1,7 @@
 import {Box, Button, Grid, Typography} from "@mui/material";
 import {useParams} from "react-router-dom";
 import CodeMirror from "@uiw/react-codemirror";
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useRef, useState} from "react";
 import {java} from "@codemirror/lang-java";
 
 import {
@@ -22,45 +22,59 @@ import {JavaProjectAppBar} from "./JavaProjectAppBar.jsx";
 import {Editable, Slate, withReact} from "slate-react";
 import {createEditor} from "slate";
 
+
+
 export function JavaProject(){
 
     const {project_id} = useParams();
 
     const [isJavaFile, setIsJavaFile] = useState(true);
 
+
+
     const [editor] = useState(() => withReact(createEditor()))
     const initialValueForSlate = [
         {
             type: 'paragraph',
-            children: [{ text: "The term \"data type\" in software programming describes the kind of javaValue a variable possesses and the kinds of mathematical, relational, or logical operations that can be performed on it without leading to an error. Numerous programming languages, for instance, utilize the data types string, integer, and floating point to represent text, whole numbers, and values with decimal points, respectively. An interpreter or compiler can determine how a programmer plans to use a given set of data by looking up its data type.\n" +
-                    "\n" +
-                    "The data comes in different forms. Examples include:\n" +
-                    "\n" +
-                    "your name – a string of characters\n" +
-                    "your age – usually an integer\n" +
-                    "the amount of money in your pocket- usually decimal type\n" +
-                    "today's date - written in date time format"+"The term \"data type\" in software programming describes the kind of javaValue a variable possesses and the kinds of mathematical, relational, or logical operations that can be performed on it without leading to an error. Numerous programming languages, for instance, utilize the data types string, integer, and floating point to represent text, whole numbers, and values with decimal points, respectively. An interpreter or compiler can determine how a programmer plans to use a given set of data by looking up its data type.\n" +
-                    "\n" +
-                    "The data comes in different forms. Examples include:\n" +
-                    "\n" +
-                    "your name – a string of characters\n" +
-                    "your age – usually an integer\n" +
-                    "the amount of money in your pocket- usually decimal type\n" +
-                    "today's date - written in date time format" }],
+            children: [{ text: "This is the earliest period of Roman history, " +
+                    "according to tradition beginning with the legendary founding " +
+                    "of Rome by Romulus. Little contemporary evidence survives from this era, and accounts were written much later during the Republic and Empire. " +
+                    "The government was an elective monarchy, where a series of seven traditional kings ruled the settlement. " +
+                    "This period ended with the overthrow of the last king, Tarquin the Proud, and the establishment of a new form of government in 509 BC. " }],
         },
     ]
 
-    const [javaValue, setJavaValue] = useState("The term \"data type\" in software programming describes the kind of javaValue a variable possesses and the kinds of mathematical, relational, or logical operations that can be performed on it without leading to an error. Numerous programming languages, for instance, utilize the data types string, integer, and floating point to represent text, whole numbers, and values with decimal points, respectively. An interpreter or compiler can determine how a programmer plans to use a given set of data by looking up its data type.\n" +
+    const [javaValue, setJavaValue] = useState("@PostMapping(\"/deleteProject\")\n" +
+        "    public ResponseEntity<Void> deleteProject(@RequestHeader Map<String, String> headers, @RequestBody ProjectRemovalRequest request)  {\n" +
+        "        SecurityContext securityContext = SecurityContext.generateContext(headers);\n" +
+        "        RequestContext requestContext = RequestContext.generateRequestContext(headers);\n" +
+        "        projectsService.deleteProject(securityContext, requestContext, request);\n" +
+        "        return ResponseEntity.noContent().build();\n" +
+        "    }\n" +
         "\n" +
-        "The data comes in different forms. Examples include:\n" +
+        "    /*\n" +
+        "    Возвращаем проекты пользователя. Тут в будущем нужно проверять права доступа - кому этот проект будет виден\n" +
+        "     */\n" +
+        "    @GetMapping(\"/getProjects\")\n" +
+        "    public ResponseEntity<List<ProjectDTO>> getAllProjects(@RequestHeader Map<String, String> headers,\n" +
+        "                                                           @RequestParam(\"targetUsername\") String targetUsername){\n" +
+        "        SecurityContext context = SecurityContext.generateContext(headers);\n" +
         "\n" +
-        "your name – a string of characters\n" +
-        "your age – usually an integer\n" +
-        "the amount of money in your pocket- usually decimal type\n" +
-        "today's date - written in date time format");
+        "        List<ProjectDTO> projects = projectsService.getAllProjects(context, targetUsername);\n" +
+        "        return ResponseEntity.ok(projects);\n" +
+        "\n" +
+        "\n" +
+        "    }");
     const onChange = useCallback((val, viewUpdate) => {
         console.log('val:', val);
         setJavaValue(val);
+    }, []);
+
+    const javaValueRef = useRef("class Hello {}");
+    const [valueJava, setValueJava] = useState(javaValueRef.current);
+    const onJavaEditorChange = useCallback((val, viewUpdate) => {
+        console.log('val:', val);
+        javaValueRef.current = val; // Update ref instead of state to avoid unnessecary re-renders
     }, []);
 
 
@@ -70,7 +84,7 @@ export function JavaProject(){
 
     const slateContent = (
 
-        <Box  minWidth={"100%"} minHeight={"100%"}>
+        <Box padding={2}  minWidth={"100vw"} minHeight={"100%"} >
 
         <Slate editor={editor} initialValue={initialValueForSlate}>
             <Editable
@@ -80,7 +94,8 @@ export function JavaProject(){
                     wordBreak: 'break-word',
                     whiteSpace: 'pre-wrap',
                     overflowWrap: 'break-word',
-                    minHeight: '100px',
+                    minHeight: '80vh', // todo here is trick
+
                     outline: 'none'
                 }}
 
@@ -99,17 +114,30 @@ export function JavaProject(){
         </Box>
     )
 
+    const customTheme = EditorView.theme({
+        "&": {
+            fontSize: "9.5pt", // Example font size
+
+        },
+        ".cm-content": {
+            fontFamily: "Menlo, Monaco, Lucida Console, monospace", // Example font family
+
+        },
+    });
+
 
 
     const javaEditorContent = (
-        <Box  minWidth={"100%"} minHeight={"100%"}>
+        <Box  minWidth={"100%"} minHeight={"100%"} >
 
 
 
 
-            <CodeMirror minHeight={"100vh"} minWidth={"100vw"} value={javaValue}
+            <CodeMirror  minHeight={"85vh"} minWidth={"100vw"} value={valueJava}
+
 
                         extensions={[
+                            customTheme,
                             java(),
                             EditorView.lineWrapping,
                             lineNumbers(),
@@ -144,7 +172,7 @@ export function JavaProject(){
 
                         ]}
 
-                        onChange={onChange} theme={"dark"} />
+                        onChange={onJavaEditorChange} theme={"dark"} />
 
 
         </Box>
@@ -161,7 +189,9 @@ export function JavaProject(){
 
     )
     return (
-        <JavaProjectAppBar username={"lol"} content={editorContent}></JavaProjectAppBar>
+        <JavaProjectAppBar change={()=>{
+            setIsJavaFile(!isJavaFile)
+        }} username={"lol"} content={editorContent}></JavaProjectAppBar>
 
 
     )
