@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
 import {createEditor} from "slate";
@@ -40,15 +40,107 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CreateIcon from "@mui/icons-material/Create";
 import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import ChatIcon from "@mui/icons-material/Chat";
+import axios from "axios";
+import {jwtDecode} from "jwt-decode";
 
 export function JavaProjectUnitedPage() {
 
+    const navigate = useNavigate();
+    // api для общения с сервисами
+    const api = axios.create({
+        baseURL: '/api/',
+    });
+    // api для общения с сервисами
+    const auth = axios.create({
+        baseURL: '/auth/',
+    });
+
+    const[authorUsername, setAuthorUsername] = useState("");
+
+    // управление токенами
+    // Add a request interceptor
+    api.interceptors.request.use(
+        async (config) => {
+
+            const token = localStorage.getItem('accessToken');
+
+            const decoded = jwtDecode(token);
+            const exp = decoded.exp;
+            const now = Math.floor(Date.now() / 1000)
+            if (token && exp>now) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            else {
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (!refreshToken) {
+                        throw new Error('invalid refreshToken');
+                    }
+                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                    localStorage.setItem("refreshToken", response.data.refreshToken);
+                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
+                } catch (error) {
+                    throw new Error('invalid refresh');
+                }
+            }
+            return config;
+        },
+        (error) => {
+
+            Promise.reject(error)
+        }
+    );
+
+    // Add a response interceptor
+    api.interceptors.response.use(
+        (response) => response,
+        async (error) => {
+            const originalRequest = error.config;
+
+            console.log(error)
+
+            // If the error status is 401 and there is no originalRequest._retry flag,
+            // it means the token has expired and we need to refresh it
+            if (error.response.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true;
+
+                try {
+                    const refreshToken = localStorage.getItem('refreshToken');
+                    if (!refreshToken) {
+                        throw new Error('invalid refreshToken');
+                    }
+                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+
+                    localStorage.setItem('accessToken', response.data.accessToken);
+                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
+                    // Retry the original request with the new token
+                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+                    return axios(originalRequest);
+                } catch (error) {
+                    navigate('/login');
+                }
+            }
+
+            return Promise.reject(error);
+        }
+    );
+
     const {project_id} = useParams();
+
+    const [project_name, setProjectName] = useState("");
 
     // boolean для переключения между slate и code mirror
     const [isJavaFile, setIsJavaFile] = useState(true);
 
     const javaEditorRef = useRef(null);
+
+    const treeRef = useRef(null);
 
 
     /* Drawer настройки*/
@@ -125,9 +217,12 @@ export function JavaProjectUnitedPage() {
     const drawer = (
         <Box padding={1} >
             <Typography sx={{ my: 2 }}>
-                Название проекта
+                {project_name} by {authorUsername}
             </Typography>
-            <Typography>К проектам</Typography>
+            <Typography onClick={
+                ()=>{navigate("/users/"+authorUsername+"/projects");}
+            }>К проектам</Typography>
+
             <Divider />
 
 
@@ -166,10 +261,11 @@ export function JavaProjectUnitedPage() {
             {drawerRegime === "Structure" &&
                 <Tree initialData={treeData}
                       openByDefault={false}
+                      ref={treeRef}
                       width={300}
                       height={1000}
                       indent={24}
-                      rowHeight={36}
+                      rowHeight={25}
                       overscanCount={1}
                       paddingTop={30}
                       paddingBottom={10}
@@ -369,6 +465,58 @@ export function JavaProjectUnitedPage() {
 
     // bottom value
     const [bottomValue, setBottomValue] = useState(0);
+
+
+    // первоначальная загрузка данных
+
+    useEffect(() => {
+        console.log("initialization")
+        loadStructure()
+    }, []);
+
+    const loadStructure = async () => {
+        try {
+            const response = await api.get('/projects/java/'+project_id+'/actions/read');
+
+            if (response.status === 200) {
+
+                console.log(response.data)
+                setProjectName(response.data.name);
+                await resolveAuthor(response.data.author);
+
+
+
+
+            }
+            else {
+                console.log(response.status);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+    const resolveAuthor = async (author_uuid)=>{
+        try {
+            const response = await auth.get('/resolveUUID/'+author_uuid);
+
+            if (response.status === 200) {
+
+                console.log(response.data)
+                setAuthorUsername(response.data.username);
+
+            }
+            else {
+                console.log(response.status);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+
 
 
 
