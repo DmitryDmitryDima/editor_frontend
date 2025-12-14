@@ -20,3 +20,12 @@ html, body {
   align-items: center;
 }
 
+
+
+
+.node-container.isSelected {
+  background: #CFE2F3;
+  color: black;
+  border-radius: 0;
+}
+

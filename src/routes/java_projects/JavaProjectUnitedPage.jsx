@@ -32,8 +32,10 @@ import {Compartment, EditorState} from "@codemirror/state";
 import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} from "@codemirror/autocomplete";
 import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
-import {Tree} from "react-arborist";
+import {Tree, useSimpleTree} from "react-arborist";
 import {FaFile, FaFolder} from "react-icons/fa";
+
+import { GoPencil } from "react-icons/go";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -149,30 +151,12 @@ export function JavaProjectUnitedPage() {
     // Настройки (Settings)
     const [drawerRegime, setDrawerRegime] = useState("Structure");
 
-    const treeData  = [
-        { id: "1", name: "Unread" , type:"folder"},
-        { id: "2", name: "Threads", type:"folder" },
-        {
-            id: "3",
-            name: "Chat Rooms",
-            type:"folder",
-            children: [
-                { id: "c1", name: "General", type:"file" },
-                { id: "c2", name: "Random", type:"file" },
-                { id: "c3", name: "Open Source Projects", type:"folder", children:[{id:"xxx", name:"deep", type:"file"}] },
-            ],
-        },
-        {
-            id: "4",
-            name: "Direct Messages",
-            type: "folder",
-            children: [
-                { id: "d1", name: "Alice", type: "file" },
-                { id: "d2", name: "Bob" , type: "file" },
-                { id: "d3", name: "Charlie", type: "file" },
-            ],
-        },
-    ];
+
+
+    const [treeData,setTreeData] = useState( [
+    ]);
+
+    const [selectedTreeData, setSelectedTreeData] = useState( "" );
 
 
 
@@ -259,7 +243,8 @@ export function JavaProjectUnitedPage() {
 
 
             {drawerRegime === "Structure" &&
-                <Tree initialData={treeData}
+                <Tree data={treeData}
+
                       openByDefault={false}
                       ref={treeRef}
                       width={300}
@@ -270,22 +255,53 @@ export function JavaProjectUnitedPage() {
                       paddingTop={30}
                       paddingBottom={10}
                       padding={25 /* sets both */}
+
+
+
+
+
+
+
+
+                      onToggle={(toggle)=>{
+                          console.log(toggle);
+                          setSelectedTreeData( toggle );
+
+                      }}
+
                 >
                     {({ node, style, dragHandle }) => (
                         <div
+                            className={`node-container ${node.state.isSelected ? "isSelected" : ""}`}
+
                             style={{
                                 display: "flex",
                                 alignItems: "center",
+                                justifyContent: 'space-between',
+
+
                                 ...style,
                             }}
                             ref={dragHandle} onClick={() => node.toggle()}
                         >
-            <span style={{ marginRight: "8px" }}>
+            <span  style={{ marginRight: "8px", marginLeft: "8px", color:"#E99696" }}>
               {
 
                   node.data.type==="file"? <FaFile /> : <FaFolder />}
+
             </span>
                             <span>{node.data.name}</span>
+                            <span style={{margin:"auto"}}>
+                            {
+                                (node.data.type==="file" && node.isSelected) &&
+                                <Button color={"secondary"}><GoPencil onClick={()=>loadFile(node.data.originalId)}/></Button>
+
+
+
+                            }
+                            </span>
+
+
                         </div>
                     )}
                 </Tree> }
@@ -482,6 +498,8 @@ export function JavaProjectUnitedPage() {
 
                 console.log(response.data)
                 setProjectName(response.data.name);
+                setTreeData(response.data.structure);
+
                 await resolveAuthor(response.data.author);
 
 
@@ -504,6 +522,7 @@ export function JavaProjectUnitedPage() {
             if (response.status === 200) {
 
                 console.log(response.data)
+
                 setAuthorUsername(response.data.username);
 
             }
@@ -514,6 +533,11 @@ export function JavaProjectUnitedPage() {
             console.log(error);
 
         }
+    }
+
+    const loadFile = async (id) => {
+        console.log(id)
+        console.log(project_id)
     }
 
 
