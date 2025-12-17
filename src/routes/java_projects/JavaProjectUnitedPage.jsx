@@ -497,6 +497,7 @@ export function JavaProjectUnitedPage() {
             if (response.status === 200) {
 
                 console.log(response.data)
+                console.log(response.data.recentFiles)
                 setProjectName(response.data.name);
                 setTreeData(response.data.structure);
 
