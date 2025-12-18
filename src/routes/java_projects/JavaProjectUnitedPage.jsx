@@ -6,6 +6,7 @@ import SourceIcon from '@mui/icons-material/Source';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import SaveIcon from '@mui/icons-material/Save';
 import {
     BottomNavigation, BottomNavigationAction,
     Box,
@@ -344,7 +345,7 @@ export function JavaProjectUnitedPage() {
 
 
     // логика обновления данных для code mirror
-    const javaValueRef = useRef("class Hello {}");
+    const javaValueRef = useRef("");
     const [valueJava, setValueJava] = useState(javaValueRef.current);
 
     // мы сохраняем значение в ссылке, чтобы избежать ререндера
@@ -497,7 +498,7 @@ export function JavaProjectUnitedPage() {
             if (response.status === 200) {
 
                 console.log(response.data)
-                console.log(response.data.recentFiles)
+
                 setProjectName(response.data.name);
                 setTreeData(response.data.structure);
 
@@ -539,6 +540,48 @@ export function JavaProjectUnitedPage() {
     const loadFile = async (id) => {
         console.log(id)
         console.log(project_id)
+
+        let address  = "/projects/java/"+project_id+"/actions/readFile/"+id;
+        try {
+            const response = await api.get(address);
+
+            if (response.status === 200) {
+
+                console.log(response.data)
+                let extension = response.data.extension;
+                if (extension === "java"){
+                    setValueJava(response.data.content);
+                    javaValueRef.current = response.data.content;
+                    setIsJavaFile(true)
+
+                }
+                else {
+                    setIsJavaFile(false)
+                    let slateSample = [
+                        {
+                            type: 'paragraph',
+                            children: [{ text: response.data.content }],
+                        },
+                    ]
+                    setValueForSlate(slateSample);
+                    valueForSlateRef.current = slateSample;
+
+                }
+
+
+
+
+
+
+            }
+            else {
+                console.log(response.status);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+
     }
 
 
@@ -574,20 +617,17 @@ export function JavaProjectUnitedPage() {
 
                     <Box sx={{ flexGrow: 1 }} />
 
-                    <Button sx={{ color: '#fff' }} onClick={()=>{
-
-                        setIsJavaFile(!isJavaFile);
-                        console.log(javaValueRef.current);
-                        setValueJava(javaValueRef.current);
 
 
 
-
-                    }}>Change</Button>
-
-                    <Button>
+                    <IconButton color="primary">
+                        <SaveIcon/>
+                    </IconButton>
+                    <IconButton color="primary">
                         <AutoAwesomeIcon/>
-                    </Button>
+                    </IconButton>
+
+
 
                 </Toolbar>
             </AppBar>
