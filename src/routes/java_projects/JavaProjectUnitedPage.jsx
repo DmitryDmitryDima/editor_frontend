@@ -14,8 +14,8 @@ import {
     ButtonGroup,
     CssBaseline,
     Divider,
-    Drawer,
-    IconButton,
+    Drawer, FormControl,
+    IconButton, Select,
     Typography
 } from "@mui/material";
 import {
@@ -45,6 +45,7 @@ import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import ChatIcon from "@mui/icons-material/Chat";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
+import MenuItem from "@mui/material/MenuItem";
 
 export function JavaProjectUnitedPage() {
 
@@ -158,6 +159,9 @@ export function JavaProjectUnitedPage() {
     ]);
 
     const [selectedTreeData, setSelectedTreeData] = useState( "" );
+
+    const [openedFileName, setOpenedFileName] = useState("");
+    const [openedFileId, setOpenedFileId] = useState("");
 
 
 
@@ -568,6 +572,9 @@ export function JavaProjectUnitedPage() {
 
                 }
 
+                setOpenedFileName(response.data.name+"."+response.data.extension);
+                setOpenedFileId(response.data.id);
+
 
 
 
@@ -616,6 +623,15 @@ export function JavaProjectUnitedPage() {
                     </IconButton>
 
                     <Box sx={{ flexGrow: 1 }} />
+
+
+                    <FormControl >
+                        <Select size={"small"} value={openedFileId} >
+                            <MenuItem value={50}>Some file</MenuItem>
+                            <MenuItem value={60}>Some file 2</MenuItem>
+                            <MenuItem value = {90}> Some file 3</MenuItem>
+                        </Select>
+                    </FormControl>
 
 
 
