@@ -7,15 +7,20 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SaveIcon from '@mui/icons-material/Save';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
 import {
     BottomNavigation, BottomNavigationAction,
     Box,
     Button,
     ButtonGroup,
-    CssBaseline,
+    CssBaseline, Dialog, DialogTitle,
     Divider,
     Drawer, FormControl,
-    IconButton, Select,
+    IconButton,  Select,
     Typography
 } from "@mui/material";
 import {
@@ -46,8 +51,12 @@ import ChatIcon from "@mui/icons-material/Chat";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import MenuItem from "@mui/material/MenuItem";
+import {v4 as uuid} from "uuid";
 
 export function JavaProjectUnitedPage() {
+
+
+    const [renderId, setRenderId] = React.useState(uuid());
 
     const navigate = useNavigate();
     // api для общения с сервисами
@@ -160,8 +169,13 @@ export function JavaProjectUnitedPage() {
 
     const [selectedTreeData, setSelectedTreeData] = useState( "" );
 
-    const [openedFileName, setOpenedFileName] = useState("");
-    const [openedFileId, setOpenedFileId] = useState("");
+    const [openedFileName, setOpenedFileName] = useState("Открыть...");
+    const [openedFileId, setOpenedFileId] = useState(null);
+
+    // последние открытые файлы
+    const [recentFiles, setRecentFiles] = useState([]);
+    const [recentFilesDialogState, setRecentFilesDialogState] = useState(false);
+
 
 
 
@@ -541,7 +555,77 @@ export function JavaProjectUnitedPage() {
         }
     }
 
+    const loadRecentFiles = async () => {
+        let address  = "/projects/java/"+project_id+"/actions/readRecentFiles";
+        try {
+            const response = await api.get(address);
+
+            if (response.status === 200) {
+
+                setRecentFiles(response.data);
+                console.log(response.data)
+                setRecentFilesDialogState(true)
+
+            }
+            else {
+                console.log(response.status);
+            }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+    const saveFile = async ()=>{
+        console.log(openedFileId)
+        if (openedFileId==null){
+            return;
+        }
+        let address = "/projects/java/"+project_id+"/actions/saveFile/"+openedFileId;
+
+        let content;
+        if (isJavaFile){
+            content = javaValueRef.current
+        }
+        else {
+            content = valueForSlateRef.current[0].children[0].text; //todo тут нужно как то иначе
+        }
+
+        const correlationId = uuid();
+
+        let body = JSON.stringify({
+            content: content
+        })
+
+        console.log(body)
+
+        try {
+            const response = await api.post(address, body, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+
+
+            }
+            else {
+                // todo ошибка
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+
+
+        }
+
+
+
+    }
+
     const loadFile = async (id) => {
+        if (id===openedFileId) return;
         console.log(id)
         console.log(project_id)
 
@@ -573,7 +657,8 @@ export function JavaProjectUnitedPage() {
                 }
 
                 setOpenedFileName(response.data.name+"."+response.data.extension);
-                setOpenedFileId(response.data.id);
+                setOpenedFileId(id);
+
 
 
 
@@ -625,18 +710,14 @@ export function JavaProjectUnitedPage() {
                     <Box sx={{ flexGrow: 1 }} />
 
 
-                    <FormControl >
-                        <Select size={"small"} value={openedFileId} >
-                            <MenuItem value={50}>Some file</MenuItem>
-                            <MenuItem value={60}>Some file 2</MenuItem>
-                            <MenuItem value = {90}> Some file 3</MenuItem>
-                        </Select>
-                    </FormControl>
+
+
+                    <Button onClick={loadRecentFiles}>{openedFileName}</Button>
 
 
 
 
-                    <IconButton color="primary">
+                    <IconButton onClick={saveFile} color="primary">
                         <SaveIcon/>
                     </IconButton>
                     <IconButton color="primary">
@@ -670,6 +751,28 @@ export function JavaProjectUnitedPage() {
                 {pageRegime === "Editor" &&editorContent}
                 {pageRegime==="Console" && consoleComponent}
                 {pageRegime==="Chat" && chatComponent}
+
+
+
+
+                <Dialog open={recentFilesDialogState} onClose={()=>{
+                    setRecentFilesDialogState(false)
+                }}>
+                    <DialogTitle>Последние файлы</DialogTitle>
+                    <List sx={{pt:0}}>
+
+                        {recentFiles.map(file=>(
+                            <ListItem onClick={()=>{
+                                setRecentFilesDialogState(false)
+                                loadFile(file.id)
+                            }} key={file.id}>
+                                <ListItemText> {file.name+"."+file.extension}</ListItemText>
+
+                            </ListItem>
+                        ))}
+
+                    </List>
+                </Dialog>
 
 
 
