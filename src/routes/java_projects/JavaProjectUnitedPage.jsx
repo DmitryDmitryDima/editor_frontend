@@ -1,7 +1,9 @@
 import {useNavigate, useParams} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Editable, Slate, withReact} from "slate-react";
-import {createEditor} from "slate";
+import {Editable, Slate, useSlateStatic, withReact} from "slate-react";
+import {createEditor, Transforms} from "slate";
+import { Editor, Node} from 'slate';
+import { ReactEditor } from 'slate-react';
 import SourceIcon from '@mui/icons-material/Source';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
@@ -52,6 +54,7 @@ import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import MenuItem from "@mui/material/MenuItem";
 import {v4 as uuid} from "uuid";
+import {Client} from "@stomp/stompjs";
 
 export function JavaProjectUnitedPage() {
 
@@ -67,6 +70,10 @@ export function JavaProjectUnitedPage() {
     const auth = axios.create({
         baseURL: '/auth/',
     });
+
+
+    // websocket
+    const clientRef = useRef(null);
 
     const[authorUsername, setAuthorUsername] = useState("");
 
@@ -148,10 +155,12 @@ export function JavaProjectUnitedPage() {
 
     const [project_name, setProjectName] = useState("");
 
-    // boolean для переключения между slate и code mirror
-    const [isJavaFile, setIsJavaFile] = useState(true);
+
+
+    const isJavaFileRef = useRef(true);
 
     const javaEditorRef = useRef(null);
+
 
     const treeRef = useRef(null);
 
@@ -170,11 +179,28 @@ export function JavaProjectUnitedPage() {
     const [selectedTreeData, setSelectedTreeData] = useState( "" );
 
     const [openedFileName, setOpenedFileName] = useState("Открыть...");
-    const [openedFileId, setOpenedFileId] = useState(null);
+    //const [openedFileId, setOpenedFileId] = useState(null);
+    const openedFileIdRef = useRef(null);
 
     // последние открытые файлы
     const [recentFiles, setRecentFiles] = useState([]);
     const [recentFilesDialogState, setRecentFilesDialogState] = useState(false);
+
+
+    // показывается ли уведомление вверху app bar
+    const [showBarNotification, setShowBarNotification] = useState(false);
+    const [barNotificationContent, setBarNotificationContent] = useState("");
+
+    useEffect(() => {
+        if (showBarNotification) {
+            const toRef = setTimeout(() => {
+                setShowBarNotification(false);
+                clearTimeout(toRef);
+            }, 2000);
+        }
+    }, [showBarNotification]);
+
+
 
 
 
@@ -352,6 +378,7 @@ export function JavaProjectUnitedPage() {
     const [slateEditor] = useState(() => withReact(createEditor()))
 
 
+
     const valueForSlateRef = useRef([
         {
             type: 'paragraph',
@@ -395,6 +422,7 @@ export function JavaProjectUnitedPage() {
             <Slate editor={slateEditor} initialValue={valueForSlate}
                    onChange={newValue=>{
                        valueForSlateRef.current = newValue;
+
 
                    }}
             >
@@ -491,7 +519,7 @@ export function JavaProjectUnitedPage() {
     // переключатель между типами редакторов
     const editorContent =(
         <div>
-            {isJavaFile ===true && javaEditorContent} {isJavaFile ===false && slateContent}
+            {isJavaFileRef.current ===true && javaEditorContent} { isJavaFileRef.current===false && slateContent}
 
         </div>
 
@@ -502,12 +530,115 @@ export function JavaProjectUnitedPage() {
     const [bottomValue, setBottomValue] = useState(0);
 
 
-    // первоначальная загрузка данных
+    // первоначальная загрузка данных и настройка websocket
 
     useEffect(() => {
         console.log("initialization")
         loadStructure()
+
+
+        if (!clientRef.current) {
+            const client = new Client({
+                brokerURL: '/ws/notifications',
+
+                debug: function (str) {
+                    console.log(str);
+                },
+                reconnectDelay: 5000,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000,
+            });
+
+            client.onConnect = function (frame) {
+                // Do something; all subscriptions must be done in this callback.
+                // This is needed because it runs after a (re)connect.
+                client.subscribe("/projects/java/"+project_id, (message) => {
+
+                    const update = JSON.parse(message.body);
+
+
+                    if (update.event_type==="java_project_file_save") {
+                        file_save_processing(update)
+                    }
+
+                    console.log(update);
+
+                });
+            };
+
+            client.onStompError = function (frame) {
+                // Invoked when the broker reports an error.
+                // Bad login/passcode typically causes an error.
+                // Compliant brokers set the `message` header with a brief message; the body may contain details.
+                // Compliant brokers terminate the connection after any error.
+                console.log('Broker reported error: ' + frame.headers['message']);
+                console.log('Additional details: ' + frame.body);
+            };
+
+            client.activate();
+            clientRef.current = client;
+        }
+        return () => {
+            if (clientRef.current) {
+
+
+                clientRef.current.deactivate().then(() => {
+                    console.log('disconnected');
+                });
+                clientRef.current = null;
+
+            }
+
+        }
+
+
+
+
     }, []);
+
+    const file_save_processing = useCallback((event) => {
+        // если ивент приходит с другого рендера и совпадает с текущим открытым файлом, мы должны обновить содержимое редактора
+        console.log(event.context.renderId, openedFileIdRef.current, event.eventData.fileId)
+        if (event.context.renderId!==renderId && openedFileIdRef.current===event.eventData.fileId){
+
+            setBarNotificationContent("saved ✓")
+            setShowBarNotification(true)
+
+            let content = event.eventData.content;
+            if (isJavaFileRef.current){
+                javaValueRef.current = content;
+                setValueJava(content);
+            }
+
+            else {
+                console.log ("update slate")
+
+                const editorRange = {
+                    anchor: Editor.start(slateEditor, []),
+                    focus: Editor.end(slateEditor, []),
+                };
+                Transforms.delete(slateEditor, { at: editorRange }); // Очищаем текущее содержимое
+                Transforms.insertNodes(
+                    slateEditor,
+                    {
+                        type: 'paragraph',
+                        children: [{ text: content }],
+                    },
+                    { at: [0] }
+                );
+
+
+
+
+            }
+
+        }
+    }, [])
+
+
+
+
+
 
     const loadStructure = async () => {
         try {
@@ -577,18 +708,19 @@ export function JavaProjectUnitedPage() {
     }
 
     const saveFile = async ()=>{
-        console.log(openedFileId)
-        if (openedFileId==null){
+        console.log(openedFileIdRef.current)
+        if (openedFileIdRef.current==null){
             return;
         }
-        let address = "/projects/java/"+project_id+"/actions/saveFile/"+openedFileId;
+        let address = "/projects/java/"+project_id+"/actions/saveFile/"+openedFileIdRef.current;
 
         let content;
-        if (isJavaFile){
+        if (isJavaFileRef.current){
             content = javaValueRef.current
         }
         else {
-            content = valueForSlateRef.current[0].children[0].text; //todo тут нужно как то иначе
+            //content = valueForSlateRef.current[0].children[0].text; //todo тут нужно как то иначе
+            content = Node.string(slateEditor);
         }
 
         const correlationId = uuid();
@@ -625,7 +757,7 @@ export function JavaProjectUnitedPage() {
     }
 
     const loadFile = async (id) => {
-        if (id===openedFileId) return;
+        if (id===openedFileIdRef.current) return;
         console.log(id)
         console.log(project_id)
 
@@ -640,11 +772,11 @@ export function JavaProjectUnitedPage() {
                 if (extension === "java"){
                     setValueJava(response.data.content);
                     javaValueRef.current = response.data.content;
-                    setIsJavaFile(true)
+                    isJavaFileRef.current=true
 
                 }
                 else {
-                    setIsJavaFile(false)
+                    isJavaFileRef.current=false
                     let slateSample = [
                         {
                             type: 'paragraph',
@@ -657,7 +789,7 @@ export function JavaProjectUnitedPage() {
                 }
 
                 setOpenedFileName(response.data.name+"."+response.data.extension);
-                setOpenedFileId(id);
+                openedFileIdRef.current=id;
 
 
 
@@ -707,7 +839,11 @@ export function JavaProjectUnitedPage() {
                         <MenuIcon />
                     </IconButton>
 
+                    {showBarNotification && <Typography >{barNotificationContent}</Typography>}
                     <Box sx={{ flexGrow: 1 }} />
+
+
+
 
 
 
