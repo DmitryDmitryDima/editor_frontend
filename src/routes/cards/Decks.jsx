@@ -21,6 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 import {DeckCreationDialog, DeckRemovalDialog} from "./DecksPageComponents.jsx";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
+import CardCreationDialog from "./CardCreationDialog.jsx";
 
 export function Decks(){
 
@@ -33,9 +34,26 @@ export function Decks(){
     const [chosenDeckId, setChosenDeckId] = useState(null)
     const[chosenDeckName, setChosenDeckName] = useState(null)
 
+
+    const [cardCreationDialogOpen, setCardCreationDialogOpen] = useState(false);
+
+    const closeCardCreationDialog=()=> {
+        setCardCreationDialogOpen(false);
+
+
+        console.log("creation dialog closed");
+        loadDecks()
+    };
+
+    const openCardCreationDialog = ()=> {setCardCreationDialogOpen(true);
+        console.log("open dialog open");
+    };
+
+
+
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/cards/',
+        baseURL: '/api',
     });
 
 
@@ -150,7 +168,7 @@ export function Decks(){
 
     const loadDecks = async () => {
         try {
-            const response = await api.get('/getDecks');
+            const response = await api.get('/cards/getDecks');
             console.log("fectching decks");
             if (response.status === 200) {
                 console.log(response.data)
@@ -183,7 +201,7 @@ export function Decks(){
 
 
     function handleFabClick() {
-        navigate("/cards/addCard")
+        openCardCreationDialog()
     }
 
 
@@ -293,6 +311,10 @@ export function Decks(){
                 deck_id={chosenDeckId}
                 deck_name={chosenDeckName}
             />
+
+            <CardCreationDialog decks={decks} api = {api} opened={cardCreationDialogOpen} close={closeCardCreationDialog} openSnackBar={openSnackBar} >
+
+            </CardCreationDialog>
 
             <Snackbar
                 open={snackBarOpened}

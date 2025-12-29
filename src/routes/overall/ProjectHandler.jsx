@@ -1,7 +1,7 @@
 import {jwtDecode} from "jwt-decode";
 import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import {UserOwnProfile} from "./UserOwnProfile.jsx";
+import {UserOwnProfile} from "../profile/UserOwnProfile.jsx";
 import {UserOwnProjects} from "./UserOwnProjects.jsx";
 
 // эта часть может быть запривачена для некоторых лиц

@@ -209,6 +209,9 @@ export default function ProjectCreationDialog(props) {
                             <FormControlLabel control={<Checkbox defaultChecked />} label="Создать точку входа" name="need_entry" />
 
 
+
+
+
                             <DialogActions>
                                 <Button onClick={handleClose}>Отмена</Button>
                                 <Button type="submit">Создать!</Button>
