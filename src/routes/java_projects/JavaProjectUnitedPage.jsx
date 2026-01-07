@@ -598,10 +598,20 @@ export function JavaProjectUnitedPage() {
 
     const file_save_processing = useCallback((event) => {
         // если ивент приходит с другого рендера и совпадает с текущим открытым файлом, мы должны обновить содержимое редактора
-        console.log(event.context.renderId, openedFileIdRef.current, event.eventData.fileId)
+        console.log(event.context.renderId, openedFileIdRef.current, event.eventData)
         if (event.context.renderId!==renderId && openedFileIdRef.current===event.eventData.fileId){
 
-            setBarNotificationContent("saved ✓")
+            let notification = "";
+            if (event.status==="SUCCESS"){
+                notification = "сохранено ✓"
+            }
+            else if (event.status==="ERROR"){
+                notification = "ошибка сохранения"
+            }
+            else {
+                notification = "сохраняем..."
+            }
+            setBarNotificationContent(notification)
             setShowBarNotification(true)
 
             let content = event.eventData.content;
