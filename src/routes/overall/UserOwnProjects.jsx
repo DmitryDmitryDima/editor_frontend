@@ -193,10 +193,10 @@ export function UserOwnProjects(props) {
 
                     const update = JSON.parse(message.body);
 
-                    if (update.event_type==="java_project_creation") {
+                    if (update.type==="java_project_creation_from_template") {
                         creationEventProcessing(update);
                     }
-                    if (update.event_type==="java_project_removal"){
+                    if (update.type==="java_project_removal"){
                         removalEventProcessing(update)
                     }
                     console.log(update);
@@ -280,23 +280,25 @@ export function UserOwnProjects(props) {
 
     }, [removalDialogCorrelationIdRef])
 
-    const creationEventProcessing = useCallback((data) => {
-        let status = data.eventData.status;
+    const creationEventProcessing = useCallback((event) => {
+        let eventData = JSON.parse(event.data);
+        console.log(event)
+        let status = event.status
         console.log(status);
-        console.log(data.context.correlationId, "inside creation event");
+        console.log(event.context.correlationId, "inside creation event");
         console.log(creationDialogCorrelationIdRef +" inside parent while comparison")
 
         // если диалог, породивший ивент, открыт, меняем его состояние
         // если закрыт - выбрасываем уведомление
-        if (status==="FAIL"){
-            if (data.context.correlationId===creationDialogCorrelationIdRef.current){
-                setCreationDialogMessage(data.message)
+        if (status==="ERROR"){
+            if (event.context.correlationId===creationDialogCorrelationIdRef.current){
+                setCreationDialogMessage(event.message)
                 creationDialogStateRef.current = "FAIL";
                 setCreationDialogState("FAIL");
             }
         }
         if (status==="SUCCESS"){
-            if (data.context.correlationId===creationDialogCorrelationIdRef.current){
+            if (event.context.correlationId===creationDialogCorrelationIdRef.current){
                 creationDialogStateRef.current = "SUCCESS";
                 setCreationDialogState("SUCCESS");
 

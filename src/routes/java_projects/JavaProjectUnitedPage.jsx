@@ -557,11 +557,11 @@ export function JavaProjectUnitedPage() {
                     const update = JSON.parse(message.body);
 
 
-                    if (update.event_type==="java_project_file_save") {
+                    if (update.type==="java_project_file_save") {
                         file_save_processing(update)
                     }
 
-                    console.log(update);
+                    //console.log(update);
 
                 });
             };
@@ -598,8 +598,11 @@ export function JavaProjectUnitedPage() {
 
     const file_save_processing = useCallback((event) => {
         // если ивент приходит с другого рендера и совпадает с текущим открытым файлом, мы должны обновить содержимое редактора
-        console.log(event.context.renderId, openedFileIdRef.current, event.eventData)
-        if (event.context.renderId!==renderId && openedFileIdRef.current===event.eventData.fileId){
+        //console.log(event.context.renderId, openedFileIdRef.current, event.eventData)
+        console.log(event.data)
+        let data = JSON.parse(event.data);
+
+        if (event.context.renderId!==renderId && openedFileIdRef.current===data.fileId){
 
             let notification = "";
             if (event.status==="SUCCESS"){
@@ -611,36 +614,40 @@ export function JavaProjectUnitedPage() {
             else {
                 notification = "сохраняем..."
             }
-            setBarNotificationContent(notification)
+            setBarNotificationContent(notification )
             setShowBarNotification(true)
 
-            let content = event.eventData.content;
-            if (isJavaFileRef.current){
-                javaValueRef.current = content;
-                setValueJava(content);
+            if (event.status==="SUCCESS"){
+                let content = data.content;
+                if (isJavaFileRef.current){
+                    javaValueRef.current = content;
+                    setValueJava(content);
+                }
+
+                else {
+                    console.log ("update slate")
+
+                    const editorRange = {
+                        anchor: Editor.start(slateEditor, []),
+                        focus: Editor.end(slateEditor, []),
+                    };
+                    Transforms.delete(slateEditor, { at: editorRange }); // Очищаем текущее содержимое
+                    Transforms.insertNodes(
+                        slateEditor,
+                        {
+                            type: 'paragraph',
+                            children: [{ text: content }],
+                        },
+                        { at: [0] }
+                    );
+
+
+
+
+                }
             }
 
-            else {
-                console.log ("update slate")
 
-                const editorRange = {
-                    anchor: Editor.start(slateEditor, []),
-                    focus: Editor.end(slateEditor, []),
-                };
-                Transforms.delete(slateEditor, { at: editorRange }); // Очищаем текущее содержимое
-                Transforms.insertNodes(
-                    slateEditor,
-                    {
-                        type: 'paragraph',
-                        children: [{ text: content }],
-                    },
-                    { at: [0] }
-                );
-
-
-
-
-            }
 
         }
     }, [])
