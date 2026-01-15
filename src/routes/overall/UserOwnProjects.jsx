@@ -254,12 +254,13 @@ export function UserOwnProjects(props) {
     }
 
 
-    const removalEventProcessing = useCallback((data)=>{
-        let status = data.eventData.status;
+    const removalEventProcessing = useCallback((event)=>{
+        let status = event.status;
+        let eventData = JSON.parse(event.data);
 
-        if (status==="FAIL"){
+        if (status==="ERROR"){
 
-            if (data.context.correlationId===removalDialogCorrelationIdRef.current){
+            if (event.context.correlationId===removalDialogCorrelationIdRef.current){
                 removalDialogStateRef.current = "FAIL";
                 setRemovalDialogState("FAIL");
             }
@@ -267,7 +268,7 @@ export function UserOwnProjects(props) {
         if (status==="SUCCESS"){
             console.log("here");
 
-            if (data.context.correlationId===removalDialogCorrelationIdRef.current){
+            if (event.context.correlationId===removalDialogCorrelationIdRef.current){
                 removalDialogStateRef.current = "SUCCESS";
                 setRemovalDialogState("SUCCESS");
 
