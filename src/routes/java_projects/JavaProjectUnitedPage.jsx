@@ -1,9 +1,7 @@
 import {useNavigate, useParams} from "react-router-dom";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Editable, Slate, useSlateStatic, withReact} from "slate-react";
-import {createEditor, Transforms} from "slate";
-import { Editor, Node} from 'slate';
-import { ReactEditor } from 'slate-react';
+import {Editable, Slate, withReact} from "slate-react";
+import {createEditor, Editor, Node, Transforms} from "slate";
 import SourceIcon from '@mui/icons-material/Source';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
@@ -11,26 +9,31 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SaveIcon from '@mui/icons-material/Save';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import {
-    BottomNavigation, BottomNavigationAction,
+    BottomNavigation,
+    BottomNavigationAction,
     Box,
     Button,
     ButtonGroup,
-    CssBaseline, Dialog, DialogTitle,
+    CssBaseline,
+    Dialog,
+    DialogTitle,
     Divider,
-    Drawer, FormControl,
-    IconButton,  Select,
+    Drawer,
+    IconButton,
     Typography
 } from "@mui/material";
 import {
-    drawSelection, dropCursor,
-    EditorView, highlightActiveLine,
+    drawSelection,
+    dropCursor,
+    EditorView,
+    highlightActiveLine,
     highlightActiveLineGutter,
-    highlightSpecialChars, keymap,
-    lineNumbers, rectangularSelection
+    highlightSpecialChars,
+    keymap,
+    lineNumbers,
+    rectangularSelection
 } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import {java} from "@codemirror/lang-java";
@@ -40,10 +43,10 @@ import {Compartment, EditorState} from "@codemirror/state";
 import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} from "@codemirror/autocomplete";
 import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
-import {Tree, useSimpleTree} from "react-arborist";
+import {Tree} from "react-arborist";
 import {FaFile, FaFolder} from "react-icons/fa";
 
-import { GoPencil } from "react-icons/go";
+import {GoPencil} from "react-icons/go";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -52,7 +55,6 @@ import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import ChatIcon from "@mui/icons-material/Chat";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
-import MenuItem from "@mui/material/MenuItem";
 import {v4 as uuid} from "uuid";
 import {Client} from "@stomp/stompjs";
 
@@ -160,6 +162,7 @@ export function JavaProjectUnitedPage() {
     const isJavaFileRef = useRef(true);
 
     const javaEditorRef = useRef(null);
+    const javaEditorCursorRef = useRef(null);
 
 
     const treeRef = useRef(null);
@@ -395,9 +398,16 @@ export function JavaProjectUnitedPage() {
 
     // мы сохраняем значение в ссылке, чтобы избежать ререндера
     const onJavaEditorChange = useCallback((val, viewUpdate) => {
-        console.log('val:', val);
+        //console.log('val:', val);
+
+        console.log("autosave trigger")
 
         javaValueRef.current = val;
+
+        javaEditorCursorRef.current = javaEditorRef.current.view.state.selection.ranges[0].from;
+
+
+        autosave()
 
     }, []);
 
@@ -475,6 +485,24 @@ export function JavaProjectUnitedPage() {
 
 
                          extensions={[
+                             EditorView.updateListener.of((v) => {
+                                 if (v.docChanged) {
+                                     // The document has changed
+                                     const newText = v.state.doc.toString();
+                                     //console.log("Document changed:", newText);
+                                     console.log("listener");
+
+                                     javaEditorRef.current.view.dispatch({
+                                         selection: {
+                                             anchor: javaEditorCursorRef.current,
+                                             head: javaEditorCursorRef.current,
+                                         },
+                                     })
+
+
+
+                                 }
+                             }),
                              customTheme,
                              java(),
                              EditorView.lineWrapping,
@@ -601,12 +629,13 @@ export function JavaProjectUnitedPage() {
         //console.log(event.context.renderId, openedFileIdRef.current, event.eventData)
         console.log(event.data)
         let data = JSON.parse(event.data);
+        console.log("parsed", data);
 
         if (event.context.renderId!==renderId && openedFileIdRef.current===data.fileId){
 
             let notification = "";
             if (event.status==="SUCCESS"){
-                notification = "сохранено ✓"
+                notification = event.context.username+" ✍︎"
             }
             else if (event.status==="ERROR"){
                 notification = "ошибка сохранения"
@@ -620,8 +649,18 @@ export function JavaProjectUnitedPage() {
             if (event.status==="SUCCESS"){
                 let content = data.content;
                 if (isJavaFileRef.current){
+
+
+
                     javaValueRef.current = content;
                     setValueJava(content);
+
+                    javaEditorCursorRef.current = javaEditorRef.current.view.state.selection.ranges[0].from;
+
+
+
+
+
                 }
 
                 else {
@@ -722,6 +761,34 @@ export function JavaProjectUnitedPage() {
             console.log(error);
 
         }
+    }
+
+    const autosave = async ()=>{
+        if (openedFileIdRef.current==null){
+            return;
+        }
+
+        let address = "/projects/java/"+project_id+"/actions/autosave/"+openedFileIdRef.current;
+        let content;
+        if (isJavaFileRef.current){
+            content = javaValueRef.current
+        }
+        else {
+
+            content = Node.string(slateEditor);
+        }
+
+        const correlationId = uuid();
+
+        let body = JSON.stringify({
+            content: content
+        })
+
+        api.post(address, body, {headers: {'Content-Type': 'application/json',
+                "X-Render-ID":renderId,
+                "X-Correlation-ID": correlationId}});
+
+
     }
 
     const saveFile = async ()=>{
