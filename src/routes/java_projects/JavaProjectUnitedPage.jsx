@@ -10,6 +10,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+
 import {
     BottomNavigation,
     BottomNavigationAction,
@@ -380,6 +381,8 @@ export function JavaProjectUnitedPage() {
     // slate editor instance
     const [slateEditor] = useState(() => withReact(createEditor()))
 
+    const isRemote = useRef(false)
+
 
 
     const valueForSlateRef = useRef([
@@ -431,7 +434,16 @@ export function JavaProjectUnitedPage() {
 
             <Slate editor={slateEditor} initialValue={valueForSlate}
                    onChange={newValue=>{
+
                        valueForSlateRef.current = newValue;
+                       if (isRemote.current){
+                           isRemote.current = false;
+                       }
+                       else {
+                           autosave()
+                       }
+
+                       console.log("slate on change event");
 
 
                    }}
@@ -664,21 +676,44 @@ export function JavaProjectUnitedPage() {
                 }
 
                 else {
-                    console.log ("update slate")
+                    console.log ("update slate after saving event")
+                    let currentCursor = undefined
+                    // пытаемся запомнить позицию курсора
+                    try {
+                        currentCursor = slateEditor.selection.anchor;
+                    }
+                    catch(err) {
+
+                    }
+
+                    isRemote.current  =true;
 
                     const editorRange = {
                         anchor: Editor.start(slateEditor, []),
                         focus: Editor.end(slateEditor, []),
                     };
+
                     Transforms.delete(slateEditor, { at: editorRange }); // Очищаем текущее содержимое
+
+                    let lines = content.split('/n');
+
+                    let nodes = lines.map(line => {
+                        return {
+                            type: 'paragraph',
+                            children: [{ text: line }],
+                        }
+                    })
+
                     Transforms.insertNodes(
                         slateEditor,
-                        {
-                            type: 'paragraph',
-                            children: [{ text: content }],
-                        },
+                        nodes,
                         { at: [0] }
                     );
+
+                    // позиция курсора
+                    Transforms.select(slateEditor, currentCursor);
+
+
 
 
 
@@ -775,7 +810,8 @@ export function JavaProjectUnitedPage() {
         }
         else {
 
-            content = Node.string(slateEditor);
+            content = slateEditor.children.map(node=>
+                Node.string(node)).join('\n')
         }
 
         const correlationId = uuid();
@@ -804,8 +840,16 @@ export function JavaProjectUnitedPage() {
         }
         else {
             //content = valueForSlateRef.current[0].children[0].text; //todo тут нужно как то иначе
-            content = Node.string(slateEditor);
+            //content = Node.string(slateEditor);
+
+            content = slateEditor.children.map(node=>
+                Node.string(node)).join('\n')
+
+
         }
+
+
+
 
         const correlationId = uuid();
 
