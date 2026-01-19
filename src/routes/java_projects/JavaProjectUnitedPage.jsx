@@ -601,6 +601,12 @@ export function JavaProjectUnitedPage() {
                         file_save_processing(update)
                     }
 
+                    // уведомление
+                    if (update.type==="java_project_file_save_system"){
+                        setBarNotificationContent("данные сохранены")
+                        setShowBarNotification(true)
+                    }
+
                     //console.log(update);
 
                 });
