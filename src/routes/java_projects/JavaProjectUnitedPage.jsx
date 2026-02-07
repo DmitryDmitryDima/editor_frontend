@@ -603,9 +603,15 @@ export function JavaProjectUnitedPage() {
 
                     // уведомление
                     if (update.type==="java_project_file_save_system"){
-                        setBarNotificationContent("данные сохранены")
+                        setBarNotificationContent("данные сохранены ")
                         setShowBarNotification(true)
                     }
+
+                    if (update.type==="java_project_file_removal") {
+                        console.log(update)
+                    }
+
+
 
                     //console.log(update);
 
@@ -642,12 +648,39 @@ export function JavaProjectUnitedPage() {
 
     }, []);
 
+
+
+
     const file_save_processing = useCallback((event) => {
         // если ивент приходит с другого рендера и совпадает с текущим открытым файлом, мы должны обновить содержимое редактора
         //console.log(event.context.renderId, openedFileIdRef.current, event.eventData)
+
+
         console.log(event.data)
         let data = JSON.parse(event.data);
         console.log("parsed", data);
+
+
+
+        if (event.status==="POLLING"){
+
+            let correlationId = event.context.correlationId;
+
+            let address = "/projects/java/"+project_id+"/actions/trigger/"+correlationId;
+            let body = JSON.stringify({
+                decision:true, // false означает, что необходимо время на принятие решения
+                content: "Activity polling"
+            })
+            api.post(address, body, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log("polling query");
+        }
+
+
+
+
+
 
         if (event.context.renderId!==renderId && openedFileIdRef.current===data.fileId){
 
