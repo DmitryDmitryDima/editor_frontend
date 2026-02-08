@@ -79,10 +79,31 @@ export function JavaProjectUnitedPage() {
     });
 
 
+
+
+
+
     // websocket
     const clientRef = useRef(null);
 
+    // автор проекта - username
     const[authorUsername, setAuthorUsername] = useState("");
+
+
+    // диалоги
+
+    // uuid процесса, к которому привязан текущий диалог
+    const currentDialogCorrelationIdRef = useRef(null);
+
+
+
+
+
+
+
+
+
+
 
     // управление токенами
     // Add a request interceptor
@@ -337,7 +358,7 @@ export function JavaProjectUnitedPage() {
 
                                 ...style,
                             }}
-                            ref={dragHandle} onClick={() => node.toggle()}
+                            ref={dragHandle} onClick={() => {node.toggle()}}
                         >
             <span  style={{ marginRight: "8px", marginLeft: "8px", color:"#E99696" }}>
               {
@@ -393,7 +414,9 @@ export function JavaProjectUnitedPage() {
 
                             </IconButton>
 
-                            <IconButton>
+                            <IconButton onClick={()=>{
+                                removeFromTree();
+                            }}>
                                 <FaTrash></FaTrash>
                             </IconButton>
 
@@ -645,6 +668,8 @@ export function JavaProjectUnitedPage() {
                 client.subscribe("/projects/java/"+project_id, (message) => {
 
                     const update = JSON.parse(message.body);
+
+                    console.log(update+" received");
 
 
                     if (update.type==="java_project_file_save") {
@@ -913,6 +938,70 @@ export function JavaProjectUnitedPage() {
                 "X-Render-ID":renderId,
                 "X-Correlation-ID": correlationId}});
 
+
+    }
+
+    const removeFromTree = async()=>{
+
+        console.log(selectedTreeData)
+        if (selectedTreeData==="") {
+            console.log("missing selected tree member");
+        }
+
+        if (selectedTreeData.startsWith("file_")){
+            let file_id = selectedTreeData.split("file_")[1]
+            let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
+            const correlationId = uuid();
+
+            try {
+                const response = await api.post(address, {headers: {'Content-Type': 'application/json',
+                        "X-Render-ID":renderId,
+                        "X-Correlation-ID": correlationId}});
+                console.log(response);
+                if (response.status === 204) {
+                    // todo переход в режим ожидания
+
+
+                }
+                else {
+                    // todo ошибка
+
+                }
+            }
+            catch (error) {
+                // todo уведомление об ошибке на сервере
+
+
+            }
+
+        }
+        /*
+
+        let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
+        const correlationId = uuid();
+
+        try {
+            const response = await api.post(address, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+
+
+            }
+            else {
+                // todo ошибка
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+
+
+        }
+
+         */
 
     }
 
