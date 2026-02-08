@@ -390,6 +390,7 @@ export function JavaProjectUnitedPage() {
                         <ButtonGroup >
                             <IconButton>
                                 <GoPencil></GoPencil>
+
                             </IconButton>
 
                             <IconButton>
@@ -1130,7 +1131,16 @@ export function JavaProjectUnitedPage() {
 
 
 
-
+                <Box sx={{
+                    position: 'sticky', // Use 'sticky' for relative sticky positioning
+                    bottom: 0,          // Stick to the bottom of the parent container
+                    //padding: 2,         // Add some padding
+                    backgroundColor: 'background.paper', // Match the background
+                    zIndex: 1,          // Ensure it's above other scrolling content
+                    display: 'flex',
+                    justifyContent: 'center', // Align buttons to the right
+                    gap: 2, // Space between buttons
+                }}>
                 <BottomNavigation
                     showLabels
                     value={bottomValue}
@@ -1158,6 +1168,8 @@ export function JavaProjectUnitedPage() {
                         setPageRegime("Chat")
                     }} label="Чат" icon={<ChatIcon />} />
                 </BottomNavigation>
+
+                    </Box>
 
 
 
