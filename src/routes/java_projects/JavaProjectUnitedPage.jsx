@@ -10,6 +10,10 @@ import SaveIcon from '@mui/icons-material/Save';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import { MdOutlineFileUpload } from "react-icons/md";
+import { FaEye } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
+import { MdDriveFileMoveOutline } from "react-icons/md";
 
 import {
     BottomNavigation,
@@ -248,7 +252,8 @@ export function JavaProjectUnitedPage() {
 
     // drawer component
     const drawer = (
-        <Box padding={1} >
+        // todo аккуратнее с sx на родительском box
+        <Box padding={1} sx={{maxHeight:"100vh", justifyContent:"space-between", display:"flex", flexDirection:"column"}} >
             <Typography sx={{ my: 2 }}>
                 {project_name} by {authorUsername}
             </Typography>
@@ -292,12 +297,13 @@ export function JavaProjectUnitedPage() {
 
 
             {drawerRegime === "Structure" &&
+                <Box sx={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
                 <Tree data={treeData}
 
                       openByDefault={false}
                       ref={treeRef}
                       width={300}
-                      height={1000}
+                      height={200}
                       indent={24}
                       rowHeight={25}
                       overscanCount={1}
@@ -343,7 +349,7 @@ export function JavaProjectUnitedPage() {
                             <span style={{margin:"auto"}}>
                             {
                                 (node.data.type==="file" && node.isSelected) &&
-                                <Button color={"secondary"}><GoPencil onClick={()=>loadFile(node.data.originalId)}/></Button>
+                                <Button color={"secondary"}><FaEye onClick={()=>loadFile(node.data.originalId)}/></Button>
 
 
 
@@ -353,7 +359,50 @@ export function JavaProjectUnitedPage() {
 
                         </div>
                     )}
-                </Tree> }
+                </Tree>
+
+
+                    <Box
+
+                        sx={{
+                            flexGrow: 1,
+                        }}
+                    >
+
+                    </Box>
+
+
+
+                        <Box
+                            sx={{
+
+                                position: 'sticky', // Use 'sticky' for relative sticky positioning
+                                bottom: 0,          // Stick to the bottom of the parent container
+                                padding: 2,         // Add some padding
+                                backgroundColor: 'background.paper', // Match the background
+                                zIndex: 1,          // Ensure it's above other scrolling content
+                                display: 'flex',
+                                justifyContent: 'center', // Align buttons to the right
+                                gap: 2, // Space between buttons
+                            }}
+                        >
+
+                        <ButtonGroup >
+                            <IconButton>
+                                <GoPencil></GoPencil>
+                            </IconButton>
+
+                            <IconButton>
+                                <FaTrash></FaTrash>
+                            </IconButton>
+
+                            <IconButton><MdDriveFileMoveOutline></MdDriveFileMoveOutline></IconButton>
+                        </ButtonGroup>
+                        </Box>
+
+
+
+                </Box>}
 
 
 
@@ -1034,6 +1083,7 @@ export function JavaProjectUnitedPage() {
             <nav>
                 <Drawer
                     container={container}
+
                     variant="temporary"
                     open={mobileOpen}
                     onClose={handleDrawerToggle}
@@ -1041,6 +1091,7 @@ export function JavaProjectUnitedPage() {
                         keepMounted: true, // Better open performance on mobile.
                     }}
                     sx={{
+
 
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
                     }}
