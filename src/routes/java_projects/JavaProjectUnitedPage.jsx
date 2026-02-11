@@ -1221,6 +1221,7 @@ export function JavaProjectUnitedPage() {
 
 
                 <Box sx={{
+
                     position: 'sticky', // Use 'sticky' for relative sticky positioning
                     bottom: 0,          // Stick to the bottom of the parent container
                     //padding: 2,         // Add some padding
@@ -1231,6 +1232,8 @@ export function JavaProjectUnitedPage() {
                     gap: 2, // Space between buttons
                 }}>
                 <BottomNavigation
+
+
                     showLabels
                     value={bottomValue}
                     onChange={(event, newValue) => {
