@@ -774,9 +774,26 @@ export function JavaProjectUnitedPage() {
                 setSimpleYesOrNotDialogPhase("SUCCESS")
                 simpleYesOrNotDialogPhaseRef.current = "SUCCESS"
 
-                loadStructure()
+
 
             }
+
+            loadStructure()
+
+        }
+
+        if (event.status==="POLLING"){
+            let data = JSON.parse(event.data);
+            // todo тестовая логика
+
+            if(event.context.renderId!==renderId && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
+                openSimpleYesOrNotDialog("Уведомление от пользователя", event.context.username+" собирается удалить просматриваемый вами файл. Удаляем?", ()=>{
+                    console.log("approve")
+                })
+            }
+        }
+
+        if (event.status==="ERROR"){
 
         }
     }, [])

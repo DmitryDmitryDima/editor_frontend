@@ -15,7 +15,7 @@ export function SimpleYesOrNotDialog(props){
 
     const handleClose = () => {
 
-
+        // todo onClose action
 
         props.close()
     };
