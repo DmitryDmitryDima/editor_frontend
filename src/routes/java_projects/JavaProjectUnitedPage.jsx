@@ -62,6 +62,7 @@ import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 import {v4 as uuid} from "uuid";
 import {Client} from "@stomp/stompjs";
+import {SimpleYesOrNotDialog} from "./SimpleYesOrNotDialog.jsx";
 
 export function JavaProjectUnitedPage() {
 
@@ -92,8 +93,40 @@ export function JavaProjectUnitedPage() {
 
     // диалоги
 
+    // унифицируем диалог для yes or not операций. если нужна отдельная сложная реализация с множеством стадий - создаем отдельно
+
     // uuid процесса, к которому привязан текущий диалог
-    const currentDialogCorrelationIdRef = useRef(null);
+
+    // фаза диалога - preparing - пользователь делает выбор, waiting - ожидаем результата операции, success - успех, fail - ошибка
+    const [simpleYesOrNotDialogPhase, setSimpleYesOrNotDialogPhase] = useState("PREPARING");
+    const simpleYesOrNotDialogPhaseRef = useRef("PREPARING");
+    // тело диалога - можно посылать различные сообщения о ходе процесса
+    const [simpleYesOrNotDialogBody, setSimpleYesOrNotDialogBody] = useState("");
+    // заголовок диалога
+    const [simpleYesOrNotDialogTitle, setSimpleYesOrNotDialogTitle] = useState("");
+
+    // correlation id для текущего yes or not диалога
+    const simpleYesOrNotDialogCorrelationIdRef = useRef(null);
+
+    const [simpleYesOrNotDialogOpen, setSimpleYesOrNotDialogOpen] = useState(false);
+    const simpleYesOrNotDialogOpenRef = useRef(false);
+
+    const simpleYesOrNotDialogActionRef = useRef(null);
+
+    const closeSimpleYesOrNotDialog = ()=>{
+        setSimpleYesOrNotDialogOpen(false);
+        simpleYesOrNotDialogOpenRef.current = false;
+    }
+    const openSimpleYesOrNotDialog = (title, body, action)=>{
+        setSimpleYesOrNotDialogPhase("PREPARING")
+        simpleYesOrNotDialogPhaseRef.current = "";
+        setSimpleYesOrNotDialogOpen(true);
+        setSimpleYesOrNotDialogTitle(title);
+        setSimpleYesOrNotDialogBody(body);
+        simpleYesOrNotDialogActionRef.current = action;
+        simpleYesOrNotDialogOpenRef.current = true;
+    }
+
 
 
 
@@ -205,7 +238,7 @@ export function JavaProjectUnitedPage() {
     const [treeData,setTreeData] = useState( [
     ]);
 
-    const [selectedTreeData, setSelectedTreeData] = useState( "" );
+    const [selectedTreeData, setSelectedTreeData] = useState( null );
 
     const [openedFileName, setOpenedFileName] = useState("Открыть...");
     //const [openedFileId, setOpenedFileId] = useState(null);
@@ -282,6 +315,8 @@ export function JavaProjectUnitedPage() {
                 ()=>{navigate("/users/"+authorUsername+"/projects");}
             }>К проектам</Typography>
 
+
+
             <Divider />
 
 
@@ -341,7 +376,7 @@ export function JavaProjectUnitedPage() {
 
                       onToggle={(toggle)=>{
                           console.log(toggle);
-                          setSelectedTreeData( toggle );
+                          //setSelectedTreeData( toggle );
 
                       }}
 
@@ -358,7 +393,9 @@ export function JavaProjectUnitedPage() {
 
                                 ...style,
                             }}
-                            ref={dragHandle} onClick={() => {node.toggle()}}
+                            ref={dragHandle} onClick={() => {
+                                setSelectedTreeData(node);
+                                node.toggle()}}
                         >
             <span  style={{ marginRight: "8px", marginLeft: "8px", color:"#E99696" }}>
               {
@@ -454,6 +491,7 @@ export function JavaProjectUnitedPage() {
     // slate editor instance
     const [slateEditor] = useState(() => withReact(createEditor()))
 
+    // позволяет различать изменения. внесенные внешним ивентом и изменения, внесенные внутренним ивентов
     const isRemote = useRef(false)
 
 
@@ -510,6 +548,7 @@ export function JavaProjectUnitedPage() {
 
                        valueForSlateRef.current = newValue;
                        if (isRemote.current){
+                           console.log("is remote")
                            isRemote.current = false;
                        }
                        else {
@@ -683,7 +722,7 @@ export function JavaProjectUnitedPage() {
                     }
 
                     if (update.type==="java_project_file_removal") {
-                        console.log(update)
+                        file_removal_processing(update)
                     }
 
 
@@ -722,6 +761,25 @@ export function JavaProjectUnitedPage() {
 
 
     }, []);
+
+
+    const file_removal_processing = useCallback((event)=>{
+        console.log(event)
+        let correlationId = event.context.correlationId;
+        if (event.status==="SUCCESS"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody("Файл успешно удален")
+                setSimpleYesOrNotDialogPhase("SUCCESS")
+                simpleYesOrNotDialogPhaseRef.current = "SUCCESS"
+
+                loadStructure()
+
+            }
+
+        }
+    }, [])
 
 
 
@@ -847,6 +905,8 @@ export function JavaProjectUnitedPage() {
 
     const loadStructure = async () => {
         try {
+
+            console.log("loadStructure")
             const response = await api.get('/projects/java/'+project_id+'/actions/read');
 
             if (response.status === 200) {
@@ -941,38 +1001,62 @@ export function JavaProjectUnitedPage() {
 
     }
 
+
+    const removeFile = async ()=>{
+        let file_id = selectedTreeData.data.originalId
+        let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
+        const correlationId = uuid();
+        console.log(correlationId, "generated")
+        simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
+
+        try {
+            const response = await api.post(address,null, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+                setSimpleYesOrNotDialogPhase("WAITING")
+                setSimpleYesOrNotDialogBody("Согласуем удаление...")
+
+
+            }
+            else {
+                // todo ошибка
+
+                setSimpleYesOrNotDialogPhase("FAIL")
+                setSimpleYesOrNotDialogBody("ошибка удаления "+response.data.message)
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            console.log(error, "ошибка!!!")
+            setSimpleYesOrNotDialogPhase("FAIL")
+            setSimpleYesOrNotDialogBody(error.response.data.message)
+
+        }
+
+    }
+
     const removeFromTree = async()=>{
 
+
         console.log(selectedTreeData)
-        if (selectedTreeData==="") {
+        if (selectedTreeData===null) {
             console.log("missing selected tree member");
         }
 
-        if (selectedTreeData.startsWith("file_")){
-            let file_id = selectedTreeData.split("file_")[1]
-            let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
-            const correlationId = uuid();
-
-            try {
-                const response = await api.post(address, {headers: {'Content-Type': 'application/json',
-                        "X-Render-ID":renderId,
-                        "X-Correlation-ID": correlationId}});
-                console.log(response);
-                if (response.status === 204) {
-                    // todo переход в режим ожидания
+        if (selectedTreeData.data.id.startsWith("file_")){
 
 
-                }
-                else {
-                    // todo ошибка
-
-                }
-            }
-            catch (error) {
-                // todo уведомление об ошибке на сервере
 
 
-            }
+            openSimpleYesOrNotDialog("Удаление "+selectedTreeData.data.name, "Вы собираетесь удалить данный файл", ()=>{
+                removeFile()
+            })
+
+
 
         }
         /*
@@ -1082,15 +1166,62 @@ export function JavaProjectUnitedPage() {
 
                 }
                 else {
-                    isJavaFileRef.current=false
-                    let slateSample = [
-                        {
-                            type: 'paragraph',
-                            children: [{ text: response.data.content }],
-                        },
-                    ]
-                    setValueForSlate(slateSample);
-                    valueForSlateRef.current = slateSample;
+
+                    if (isJavaFileRef.current){
+                        isJavaFileRef.current=false
+                        console.log("сценарий переключения с java")
+
+                        let slateSample = [
+                            {
+                                type: 'paragraph',
+                                children: [{ text: response.data.content }],
+                            },
+                        ]
+
+
+
+
+
+
+
+
+
+
+
+
+                        setValueForSlate(slateSample);
+                        valueForSlateRef.current = slateSample;
+                    }
+                    else {
+                        console.log("сценарий переключения с slate")
+                        isRemote.current  =true;
+
+                        const editorRange = {
+                            anchor: Editor.start(slateEditor, []),
+                            focus: Editor.end(slateEditor, []),
+                        };
+
+                        Transforms.delete(slateEditor, { at: editorRange }); // Очищаем текущее содержимое
+
+                        let lines = response.data.content.split('/n');
+
+                        let nodes = lines.map(line => {
+                            return {
+                                type: 'paragraph',
+                                children: [{ text: line }],
+                            }
+                        })
+
+                        Transforms.insertNodes(
+                            slateEditor,
+                            nodes,
+                            { at: [0] }
+                        );
+                    }
+
+
+
+
 
                 }
 
@@ -1190,6 +1321,14 @@ export function JavaProjectUnitedPage() {
                 </Drawer>
             </nav>
             <Box component="main" >
+
+
+
+
+
+
+
+
                 <Toolbar variant={"dense"} />
 
                 {pageRegime === "Editor" &&editorContent}
@@ -1265,7 +1404,37 @@ export function JavaProjectUnitedPage() {
 
 
 
+                <SimpleYesOrNotDialog
+
+                api={api}
+                opened={simpleYesOrNotDialogOpen}
+                close={closeSimpleYesOrNotDialog}
+                phase={simpleYesOrNotDialogPhase}
+                changeCorrelationId={(value)=>{
+                    simpleYesOrNotDialogCorrelationIdRef.current = value;
+
+                }}
+
+                changeDialogPhase={(value)=>{
+                    simpleYesOrNotDialogPhaseRef.current = value;
+                    setSimpleYesOrNotDialogPhase(value);
+
+                }}
+
+                title = {simpleYesOrNotDialogTitle}
+                body = {simpleYesOrNotDialogBody}
+
+                action={()=>{
+                    simpleYesOrNotDialogActionRef.current()
+                }}
+
+                >
+
+                </SimpleYesOrNotDialog>
+
             </Box>
+
+
         </Box>
     )
 }
