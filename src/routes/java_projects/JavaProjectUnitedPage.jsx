@@ -63,6 +63,7 @@ import {jwtDecode} from "jwt-decode";
 import {v4 as uuid} from "uuid";
 import {Client} from "@stomp/stompjs";
 import {SimpleYesOrNotDialog} from "./SimpleYesOrNotDialog.jsx";
+import {PollingDialogWithTimer} from "./PollingDialogWithTimer.jsx";
 
 export function JavaProjectUnitedPage() {
 
@@ -125,6 +126,32 @@ export function JavaProjectUnitedPage() {
         setSimpleYesOrNotDialogBody(body);
         simpleYesOrNotDialogActionRef.current = action;
         simpleYesOrNotDialogOpenRef.current = true;
+    }
+
+
+    // создаем отдельный диалог для polling событий, которые могут приходить от системы
+    const [pollingDialogWithTimerBody, setPollingDialogWithTimerBody] = useState("");
+    const [pollingDialogWithTimerTitle, setPollingDialogWithTimerTitle] = useState("");
+    // todo не нужен ??? const pollingDialogWithTimerCorrelationIdRef = useRef(null);
+    const [pollingDialogWithTimerOpen, setPollingDialogWithTimerOpen] = useState(false);
+    const pollingDialogWithTimerOpenRef = useRef(false);
+
+    const pollingDialogWithTimerYesActionRef = useRef(null);
+    const pollingDialogWithTimerNoActionRef = useRef(null);
+
+    const closePollingDialogWithTimer=()=>{
+        setPollingDialogWithTimerOpen(false);
+        pollingDialogWithTimerOpenRef.current = false;
+    }
+
+    const openPollingDialogWithTimer = (title, body, yesAction, noAction)=>{
+        setPollingDialogWithTimerOpen(true);
+        pollingDialogWithTimerOpenRef.current = true;
+        pollingDialogWithTimerYesActionRef.current = yesAction;
+        pollingDialogWithTimerNoActionRef.current = noAction;
+        setPollingDialogWithTimerTitle(title);
+        setPollingDialogWithTimerBody(body);
+
     }
 
 
@@ -784,16 +811,47 @@ export function JavaProjectUnitedPage() {
 
         if (event.status==="POLLING"){
             let data = JSON.parse(event.data);
+
             // todo тестовая логика
 
             if(event.context.renderId!==renderId && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
-                openSimpleYesOrNotDialog("Уведомление от пользователя", event.context.username+" собирается удалить просматриваемый вами файл. Удаляем?", ()=>{
-                    console.log("approve")
-                })
+
+                pollingAnswer(JSON.stringify({
+                    decision:false, // false означает, что необходимо время на принятие решения
+                    content: "No"
+                }), correlationId)
+
+                openPollingDialogWithTimer("Уведомление от пользователя", event.context.username+" собирается удалить просматриваемый вами файл. Удаляем?",
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // false означает, что необходимо время на принятие решения
+                            content: "Yes"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                },
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // true - ответ однозначен
+                            content: "No"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    }
+
+                )
             }
         }
 
         if (event.status==="ERROR"){
+
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message)
+                setSimpleYesOrNotDialogPhase("FAIL")
+                simpleYesOrNotDialogPhaseRef.current = "FAIL"
+
+
+
+            }
+
 
         }
     }, [])
@@ -918,7 +976,22 @@ export function JavaProjectUnitedPage() {
 
 
 
+    // при получении polling события нужно отправить activity ивент (decision = false) - так мы гарантируем, что наше мнение учтут
+    const pollingAnswer = async(answer, corrId)=>{
+        try {
 
+            console.log("loadStructure")
+            let way = '/projects/java/'+project_id+'/actions/trigger/'+corrId
+            await api.post(way, answer, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": corrId}});
+
+
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
 
     const loadStructure = async () => {
         try {
@@ -1420,6 +1493,23 @@ export function JavaProjectUnitedPage() {
                     </Box>
 
 
+
+                <PollingDialogWithTimer
+                close={closePollingDialogWithTimer}
+                opened = {pollingDialogWithTimerOpen}
+
+                title={pollingDialogWithTimerTitle}
+                body={pollingDialogWithTimerBody}
+                onNo = {()=>{
+                    pollingDialogWithTimerNoActionRef.current()
+                }}
+
+                onYes = {()=>{
+                    pollingDialogWithTimerYesActionRef.current()
+                }}
+                >
+
+                </PollingDialogWithTimer>
 
                 <SimpleYesOrNotDialog
 
