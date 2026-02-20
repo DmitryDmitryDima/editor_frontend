@@ -17,6 +17,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {v4 as uuid} from "uuid";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {useNavigate} from "react-router-dom";
 
 const ExpandMore = styled((props) => {
@@ -85,20 +87,34 @@ export default function ProjectCardComponent(props) {
             />
             <CardContent>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    Описание проекта...
+                    {props.privacyLevel==="PRIVATE"?"Приватный проект":"Открытый проект"+". Автор: "+props.author}
                 </Typography>
             </CardContent>
             <CardActions disableSpacing>
-                <IconButton aria-label="start" onClick={()=>{
-                    navigate("/workplace/projects/"+props.language+"/"+props.id)
-                }}>
-                    <PlayArrowIcon />
-                </IconButton>
-                <IconButton aria-label="delete" onClick={()=>{
+
+                {
+                    (props.view === "OWNER" || props.view === "PARTICIPANT") && <div>
+                        <IconButton aria-label="start" onClick={()=>{
+                        navigate("/workplace/projects/"+props.language+"/"+props.id)
+                    }}>
+                        <VisibilityIcon/>
+                    </IconButton>
+
+
+                    </div>
+                }
+
+
+                {props.view==="OWNER" && <IconButton aria-label="delete" onClick={()=>{
                     removeButtonClick()
                 }}>
                     <DeleteIcon />
-                </IconButton>
+                </IconButton> }
+
+                {(props.view==="READER" || props.view==="PARTICIPANT") && <IconButton >
+                    <ContentCopyIcon/>
+                </IconButton>}
+
                 <ExpandMore
                     expand={expanded}
                     onClick={handleExpandClick}

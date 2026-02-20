@@ -11,6 +11,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
+
 import { v4 as uuid } from 'uuid';
 import {
     Box,

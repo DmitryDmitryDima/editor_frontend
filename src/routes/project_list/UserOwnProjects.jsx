@@ -1,7 +1,7 @@
 import {Bar} from "../../elements/Bar.jsx";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import Container from "@mui/material/Container";
-import {Box, Fab, Grid, IconButton, Stack, styled, Typography} from "@mui/material";
+import {Box, Divider, Fab, Grid, IconButton, Stack, styled, Typography} from "@mui/material";
 import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 import { Client } from '@stomp/stompjs';
 import {useLocation, useNavigate} from "react-router-dom";
@@ -16,7 +16,12 @@ export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
     const {username, uuid} = props;
 
-    const [javaProjects, setJavaProjects] = useState([]);
+    const [targetJavaProjects, setTargetJavaProjects] = useState([]);
+
+    const [participantJavaProjects, setParticipantJavaProjects] = useState([]);
+
+    // расшифровка сторонних uuid
+    const [resolveMap, setResolveMap] = useState(new Map());
 
     const clientRef = useRef(null);
 
@@ -88,6 +93,11 @@ export function UserOwnProjects(props) {
     // api для общения с сервисами
     const api = axios.create({
         baseURL: '/api/',
+    });
+
+    // api для общения с auth
+    const auth = axios.create({
+        baseURL: '/auth/',
     });
 
     // управление токенами
@@ -242,7 +252,41 @@ export function UserOwnProjects(props) {
 
             if (response.status === 200) {
 
-                setJavaProjects(response.data);
+                let data  = response.data;
+                let authorProjects = [];
+                let participantProjects = [];
+                for (let project of data) {
+                    if (project.author===uuid){
+                        authorProjects.push(project);
+                    }
+                    else {
+                        participantProjects.push(project);
+                    }
+                }
+
+                if (participantProjects.length > 0) {
+                    let param = "";
+                    participantProjects.forEach((project, index) => {
+                        if (index === participantProjects.length - 1) {
+                            param+=project.author
+                        }
+                        else {
+                            param+=project.author+",";
+                        }
+                    })
+
+                    const resolveResponse = await auth.get("/resolveBatch?uuids="+param);
+
+                    for (let entry of resolveResponse.data) {
+                        resolveMap.set(entry.uuid, entry.username)
+                    }
+
+                    console.log(resolveResponse)
+                }
+
+
+                setTargetJavaProjects(authorProjects);
+                setParticipantJavaProjects(participantProjects)
             }
             else {
                 console.log(response.status);
@@ -317,15 +361,36 @@ export function UserOwnProjects(props) {
 
 
 
-
+    // проект может быть иметь три формы -
+    // owner (открытие, запуск, удаление, возможно последние действия в консоли),
+    // participant (открытие, запуск, копия если open)
+    // и reader (копия если open).
     const content = (
         <Grid item md={3}>
             <Stack direction="column" spacing={2}>
-            {javaProjects.map(project => (
-                <ProjectCardComponent language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
-                    project.id)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+                <Divider/>
+                <Typography>Авторские проекты {username}</Typography>
+                <Divider/>
+            {targetJavaProjects.map(project => (
+                <ProjectCardComponent view = "OWNER" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
+                    project.id)} privacylevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
             ))}
             </Stack>
+
+
+
+            <Stack direction="column" spacing={2}>
+                <Divider/>
+                <Typography>Проекты с участием {username}</Typography>
+                <Divider/>
+                {participantJavaProjects.map(project => (
+
+                    <ProjectCardComponent view = "PARTICIPANT" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
+                        project.id)} author = {resolveMap.get(project.author)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+                ))}
+            </Stack>
+
+
 
             <ProjectCreationDialog api = {api} opened={projectCreationDialogOpen} close={closeProjectCreationDialog}
 

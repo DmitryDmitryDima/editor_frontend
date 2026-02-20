@@ -18,7 +18,7 @@ import {CardEditPage} from "./routes/cards/CardEditPage.jsx";
 
 import "./App.css"
 import {ProfileHandler} from "./routes/profile/ProfileHandler.jsx";
-import {ProjectHandler} from "./routes/overall/ProjectHandler.jsx";
+import {ProjectHandler} from "./routes/project_list/ProjectHandler.jsx";
 import {Storage} from "./routes/knowledgebase/Storage.jsx";
 import {JavaProject} from "./routes/java_projects/JavaProject.jsx";
 import {JavaProjectUnitedPage} from "./routes/java_projects/JavaProjectUnitedPage.jsx";

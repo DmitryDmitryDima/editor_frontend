@@ -70,6 +70,13 @@ export function JavaProjectUnitedPage() {
 
     const [renderId, setRenderId] = React.useState(uuid());
 
+
+    const [authUsername, setAuthUsername] = useState("")
+    const [authUUID, setAuthUUID] = useState("")
+
+    const authUsernameRef = React.useRef(null);
+    const authUUIDRef = React.useRef(null);
+
     const navigate = useNavigate();
     // api для общения с сервисами
     const api = axios.create({
@@ -153,6 +160,28 @@ export function JavaProjectUnitedPage() {
         setPollingDialogWithTimerBody(body);
 
     }
+
+
+
+
+    useEffect(()=>{
+        let token = localStorage.getItem("accessToken");
+        if (token!==null){
+            const decoded = jwtDecode(token);
+            console.log(decoded);
+            console.log(authUsername);
+
+            setAuthUsername(decoded.username);
+            setAuthUUID(decoded.sub)
+
+            authUsernameRef.current = decoded.username;
+            authUUIDRef.current = decoded.sub;
+
+        }
+
+
+
+    }, [])
 
 
 
@@ -338,9 +367,15 @@ export function JavaProjectUnitedPage() {
             <Typography sx={{ my: 2 }}>
                 {project_name} by {authorUsername}
             </Typography>
-            <Typography onClick={
+            {authUsername!==authorUsername && <Typography onClick={
                 ()=>{navigate("/users/"+authorUsername+"/projects");}
-            }>К проектам</Typography>
+            }>К проектам автора</Typography>}
+
+            <Typography onClick={
+                ()=>{navigate("/users/"+authUsername+"/projects");}
+            }>Мои проекты {authUsername}</Typography>
+
+
 
 
 
@@ -812,10 +847,11 @@ export function JavaProjectUnitedPage() {
         if (event.status==="POLLING"){
             let data = JSON.parse(event.data);
 
-            // todo тестовая логика
 
-            if(event.context.renderId!==renderId && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
 
+            if(event.context.username!==authUsernameRef.current && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
+                console.log(event.context.username+" polling initiator username");
+                console.log(authUsernameRef.current+" auth username")
                 pollingAnswer(JSON.stringify({
                     decision:false, // false означает, что необходимо время на принятие решения
                     content: "No"
@@ -869,7 +905,7 @@ export function JavaProjectUnitedPage() {
         console.log("parsed", data);
 
 
-
+        /*
         if (event.status==="POLLING"){
 
             let correlationId = event.context.correlationId;
@@ -884,6 +920,8 @@ export function JavaProjectUnitedPage() {
                     "X-Correlation-ID": correlationId}});
             console.log("polling query");
         }
+
+         */
 
 
 
