@@ -3,6 +3,7 @@ import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {UserOwnProfile} from "../profile/UserOwnProfile.jsx";
 import {UserOwnProjects} from "./UserOwnProjects.jsx";
+import UserStrangerProjects from "./UserStrangerProjects.jsx";
 
 // эта часть может быть запривачена для некоторых лиц
 export function ProjectHandler() {
@@ -32,7 +33,7 @@ export function ProjectHandler() {
         <div>
             {username===authUsername&&  <UserOwnProjects username={authUsername} uuid={uuid} />}
             {authUsername==="" && <p>Гость смотрит чьи то проекты</p>}
-            {username!==authUsername && <p>Я смотрю чужие проекты</p>}
+            {username!==authUsername && <UserStrangerProjects authUsername={authUsername} uuid={uuid} targetUsername={username} />}
         </div>
     )
 

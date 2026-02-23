@@ -68,6 +68,7 @@ export default function ProjectCardComponent(props) {
                 avatar={
                     <Avatar sx={{ bgcolor: red[500] }} aria-label="project">
                         {props.language}
+
                     </Avatar>
                 }
 
@@ -87,7 +88,8 @@ export default function ProjectCardComponent(props) {
             />
             <CardContent>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    {props.privacyLevel==="PRIVATE"?"Приватный проект":"Открытый проект"+". Автор: "+props.author}
+                    {(props.privacyLevel==="PRIVATE"?"Приватный проект. ":"Открытый проект. ")+"Автор: "+props.author}
+
                 </Typography>
             </CardContent>
             <CardActions disableSpacing>

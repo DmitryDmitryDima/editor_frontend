@@ -250,24 +250,18 @@ export function UserOwnProjects(props) {
         try {
             const response = await api.get('/projects/java/getProjects?targetUsername='+username);
 
+            console.log(response)
+
             if (response.status === 200) {
 
                 let data  = response.data;
-                let authorProjects = [];
-                let participantProjects = [];
-                for (let project of data) {
-                    if (project.author===uuid){
-                        authorProjects.push(project);
-                    }
-                    else {
-                        participantProjects.push(project);
-                    }
-                }
 
-                if (participantProjects.length > 0) {
+
+
+                if (data.participantProjects.length > 0) {
                     let param = "";
-                    participantProjects.forEach((project, index) => {
-                        if (index === participantProjects.length - 1) {
+                    data.participantProjects.forEach((project, index) => {
+                        if (index === data.participantProjects.length - 1) {
                             param+=project.author
                         }
                         else {
@@ -285,8 +279,8 @@ export function UserOwnProjects(props) {
                 }
 
 
-                setTargetJavaProjects(authorProjects);
-                setParticipantJavaProjects(participantProjects)
+                setTargetJavaProjects(data.authorProjects);
+                setParticipantJavaProjects(data.participantProjects)
             }
             else {
                 console.log(response.status);
@@ -373,7 +367,7 @@ export function UserOwnProjects(props) {
                 <Divider/>
             {targetJavaProjects.map(project => (
                 <ProjectCardComponent view = "OWNER" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
-                    project.id)} privacylevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
+                    project.id)} privacyLevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
             ))}
             </Stack>
 
@@ -386,7 +380,8 @@ export function UserOwnProjects(props) {
                 {participantJavaProjects.map(project => (
 
                     <ProjectCardComponent view = "PARTICIPANT" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
-                        project.id)} author = {resolveMap.get(project.author)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+
+                        project.id)} privacyLevel={project.privacyLevel} author = {resolveMap.get(project.author)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
                 ))}
             </Stack>
 
