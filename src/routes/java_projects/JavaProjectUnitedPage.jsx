@@ -766,7 +766,7 @@ export function JavaProjectUnitedPage() {
             client.onConnect = function (frame) {
                 // Do something; all subscriptions must be done in this callback.
                 // This is needed because it runs after a (re)connect.
-                client.subscribe("/projects/java/"+project_id, (message) => {
+                client.subscribe("/projects/"+project_id, (message) => {
 
                     const update = JSON.parse(message.body);
 

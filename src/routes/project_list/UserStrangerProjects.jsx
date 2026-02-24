@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
@@ -13,11 +13,13 @@ import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 export default function UserStrangerProjects(props) {
 
     // данные аутентификации
+    const {auth, api, authUsername, uuid, targetUsername, targetUUID} = props;
 
-    const authUsername = props.authUsername;
-    const uuid = props.uuid;
 
-    const targetUsername = props.targetUsername;
+
+
+
+
 
 
 
@@ -30,109 +32,135 @@ export default function UserStrangerProjects(props) {
 
     const clientRef = useRef(null);
 
-    const navigate = useNavigate();
 
 
-    // api для общения с сервисами
-    const api = axios.create({
-        baseURL: '/api/',
-    });
 
-    // api для общения с auth
-    const auth = axios.create({
-        baseURL: '/auth/',
-    });
 
-    // управление токенами
-    // Add a request interceptor
-    api.interceptors.request.use(
-        async (config) => {
 
-            const token = localStorage.getItem('accessToken');
 
-            const decoded = jwtDecode(token);
-            const exp = decoded.exp;
-            const now = Math.floor(Date.now() / 1000)
-            if (token && exp>now) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            else {
-                try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
+
+    useEffect(  () => {
+
+        loadJavaProjects()
+
+
+        if (!clientRef.current) {
+
+            const client = new Client({
+                brokerURL: '/ws/notifications',
+
+                debug: function (str) {
+                    console.log(str);
+                },
+                reconnectDelay: 5000,
+                heartbeatIncoming: 4000,
+                heartbeatOutgoing: 4000,
+            });
+
+            client.onConnect = function (frame) {
+
+
+
+
+
+
+
+
+                // подписка на личную приватку
+
+                client.subscribe("/users/activity/private/"+uuid, (message) => {
+
+                    const update = JSON.parse(message.body);
+
+                    if (update.type==="java_project_creation_from_template") {
+                        //creationEventProcessing(update);
                     }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
-
-
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
-                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-
-                } catch (error) {
-                    throw new Error('invalid refresh');
-                }
-            }
-            return config;
-        },
-        (error) => {
-
-            Promise.reject(error)
-        }
-    );
-
-    // Add a response interceptor
-    api.interceptors.response.use(
-        (response) => response,
-        async (error) => {
-            const originalRequest = error.config;
-
-            console.log(error)
-
-            // If the error status is 401 and there is no originalRequest._retry flag,
-            // it means the token has expired and we need to refresh it
-            if (error.response.status === 401 && !originalRequest._retry) {
-                originalRequest._retry = true;
-
-                try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
+                    if (update.type==="java_project_removal"){
+                        //removalEventProcessing(update)
                     }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
+                    console.log(update);
+
+                });
+
+                // подписка на публичный канал target пользователя
+                client.subscribe("/users/activity/public/"+targetUUID, (message) => {
+
+                    const update = JSON.parse(message.body);
+
+                    if (update.type==="java_project_creation_from_template") {
+                        creationEventProcessing(update);
+                    }
+                    if (update.type==="java_project_removal"){
+                        removalEventProcessing(update)
+                    }
+                    console.log(update);
+
+                });
 
 
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
+            };
 
-                    // Retry the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-                    return axios(originalRequest);
-                } catch (error) {
-                    navigate('/login');
-                }
+            client.onStompError = function (frame) {
+                // Invoked when the broker reports an error.
+                // Bad login/passcode typically causes an error.
+                // Compliant brokers set the `message` header with a brief message; the body may contain details.
+                // Compliant brokers terminate the connection after any error.
+                console.log('Broker reported error: ' + frame.headers['message']);
+                console.log('Additional details: ' + frame.body);
+            };
+
+            client.activate();
+            clientRef.current = client;
+        }
+
+        return () => {
+            if (clientRef.current) {
+
+
+                clientRef.current.deactivate().then(() => {
+                    console.log('disconnected');
+                });
+                clientRef.current = null;
+
             }
 
-            return Promise.reject(error);
         }
-    );
-
-    useEffect(() => {
-
-        loadJavaProjects();
-
-
-
-
-
 
 
 
     }, []);
 
-    const loadJavaProjects = async () => {
+    const removalEventProcessing = useCallback((event)=>{
+        let status = event.status;
+
+
+
+        if (status==="SUCCESS"){
+
+
+            loadJavaProjects()
+        }
+
+
+    }, [])
+
+    const creationEventProcessing = useCallback((event) => {
+        let eventData = JSON.parse(event.data);
+        console.log(event)
+        let status = event.status
+
+        if (status==="SUCCESS"){
+
+
+            loadJavaProjects()
+        }
+    }, []);
+
+
+
+    const loadJavaProjects =  async () => {
         try {
-            const response = await api.get('/projects/java/getProjects?targetUsername='+targetUsername);
+            const response =  await api.get('/projects/java/getProjects?targetUsername='+targetUsername);
 
             console.log(response)
 
@@ -142,9 +170,27 @@ export default function UserStrangerProjects(props) {
 
 
 
+
+                data.authorProjects.forEach((project) => {
+                    if (project.participants.includes(props.uuid)){
+                        project.viewStatus ="PARTICIPANT"
+                    }
+                    else {
+                        project.viewStatus ="READER"
+                    }
+                })
+
                 if (data.participantProjects.length > 0) {
                     let param = "";
                     data.participantProjects.forEach((project, index) => {
+
+                        if (project.participants.includes(props.uuid)){
+                            project.viewStatus ="PARTICIPANT"
+                        }
+                        else {
+                            project.viewStatus ="READER"
+                        }
+
                         if (index === data.participantProjects.length - 1) {
                             param+=project.author
                         }
@@ -182,8 +228,13 @@ export default function UserStrangerProjects(props) {
                 <Typography>Авторские проекты {targetUsername}</Typography>
                 <Divider/>
                 {targetJavaProjects.map(project => (
-                    <ProjectCardComponent view = "OWNER" language = "java"  privacyLevel={project.privacyLevel} name={project.name} id={project.id}
+
+                    <ProjectCardComponent view = {project.viewStatus} language = "java"
+                                                                                       privacyLevel={project.privacyLevel} name={project.name} id={project.id}
                                           status={project.status} author={targetUsername}></ProjectCardComponent>
+
+
+
                 ))}
             </Stack>
 
@@ -191,11 +242,12 @@ export default function UserStrangerProjects(props) {
 
             <Stack direction="column" spacing={2}>
                 <Divider/>
-                <Typography>Проекты с участием {targetUsername}</Typography>
+                <Typography>Проекты с участием {targetUsername} </Typography>
+
                 <Divider/>
                 {participantJavaProjects.map(project => (
 
-                    <ProjectCardComponent view = "PARTICIPANT" language = "java"  privacyLevel={project.privacyLevel} author = {resolveMap.get(project.author)}
+                    <ProjectCardComponent view = {project.viewStatus} language = "java"  privacyLevel={project.privacyLevel} author = {resolveMap.get(project.author)}
                                           name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
                 ))}
             </Stack>
