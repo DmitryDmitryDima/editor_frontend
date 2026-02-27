@@ -20,6 +20,7 @@ import {v4 as uuid} from "uuid";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {useNavigate} from "react-router-dom";
+import AddLinkIcon from '@mui/icons-material/AddLink';
 
 const ExpandMore = styled((props) => {
     const { expand, ...other } = props;
@@ -58,6 +59,10 @@ export default function ProjectCardComponent(props) {
     const removeButtonClick = async () => {
         props.openRemoveDialog()
 
+    }
+
+    const inviteGenerationClick = async ()=>{
+        props.inviteAction()
     }
 
 
@@ -112,6 +117,15 @@ export default function ProjectCardComponent(props) {
                 }}>
                     <DeleteIcon />
                 </IconButton> }
+
+                {props.view==="OWNER" && <IconButton onClick={
+                    ()=>{
+                        inviteGenerationClick();
+                    }
+                }>
+
+                    <AddLinkIcon />
+                </IconButton>}
 
                 {(props.view==="READER" || props.view==="PARTICIPANT") && <IconButton >
                     <ContentCopyIcon/>

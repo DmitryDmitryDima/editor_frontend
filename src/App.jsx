@@ -22,6 +22,7 @@ import {ProjectHandler} from "./routes/project_list/ProjectHandler.jsx";
 import {Storage} from "./routes/knowledgebase/Storage.jsx";
 import {JavaProject} from "./routes/java_projects/JavaProject.jsx";
 import {JavaProjectUnitedPage} from "./routes/java_projects/JavaProjectUnitedPage.jsx";
+import {ProjectInvitePage} from "./routes/invites/ProjectInvitePage.jsx";
 
 
 function App() {
@@ -48,6 +49,8 @@ function App() {
                     <Route path="/users/:username/projects" element={<ProjectHandler/>} />
 
                     <Route path="/workplace/projects/java/:project_id" element={<JavaProjectUnitedPage />} />
+
+                    <Route path="/invite/projects/:project_type/:invite_token" element={<ProjectInvitePage/>}/>
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />

@@ -11,6 +11,7 @@ import ProjectCardComponent from "./ProjectCardComponent.jsx";
 import ProjectCreationDialog from "./ProjectCreationDialog.jsx";
 import AddIcon from "@mui/icons-material/Add";
 import {ProjectRemovalDialog} from "./ProjectRemovalDialog.jsx";
+import ProjectInviteDialog from "./ProjectInviteDialog.jsx";
 
 export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
@@ -83,6 +84,24 @@ export function UserOwnProjects(props) {
         setProjectRemovalDialogOpen(true);
         console.log("removal dialog open for", project_id);
     };
+
+
+
+    /*
+    ---- Параметры диалога приглашения в проект
+     */
+
+    const [inviteDialogProjectId, setInviteDialogProjectId] = useState(null);
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+    const closeInviteDialog = ()=> {
+        setInviteDialogProjectId(null);
+        setInviteDialogOpen(false);
+    }
+    const openProjectInviteDialog = (project_id)=> {
+        setInviteDialogProjectId(project_id);
+        setInviteDialogOpen(true);
+    }
 
 
 
@@ -287,7 +306,12 @@ export function UserOwnProjects(props) {
                 <Divider/>
             {targetJavaProjects.map(project => (
                 <ProjectCardComponent view = "OWNER" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
-                    project.id)} privacyLevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
+                    project.id)}
+                                      inviteAction = {()=>{
+
+                                          openProjectInviteDialog(project.id)
+                                      }}
+                                      privacyLevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
             ))}
             </Stack>
 
@@ -301,9 +325,21 @@ export function UserOwnProjects(props) {
 
                     <ProjectCardComponent view = "PARTICIPANT" language = "java" openRemoveDialog = {()=>openProjectRemovalDialog(project.name,
 
-                        project.id)} privacyLevel={project.privacyLevel} author = {resolveMap.get(project.author)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
+                        project.id)} privacyLevel={project.privacyLevel}
+                                          author = {resolveMap.get(project.author)}  name={project.name} id={project.id} status={project.status}></ProjectCardComponent>
                 ))}
             </Stack>
+
+
+            <ProjectInviteDialog
+                api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId}
+
+            >
+
+            </ProjectInviteDialog>
+
+
+
 
 
 
