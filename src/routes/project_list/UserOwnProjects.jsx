@@ -332,7 +332,8 @@ export function UserOwnProjects(props) {
 
 
             <ProjectInviteDialog
-                api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId}
+                api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId} auth={auth}
+                authUsername={username}
 
             >
 

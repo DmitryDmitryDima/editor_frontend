@@ -133,7 +133,7 @@ export function UserOwnProfile(props){
 
     const loadUser = async () => {
         try {
-            const response = await api.get('/users/profile?targetUsername='+username);
+            const response = await api.get('/users/getUserByUsername?targetUsername='+username);
 
             if (response.status === 200) {
 
