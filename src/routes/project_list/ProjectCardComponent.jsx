@@ -100,7 +100,7 @@ export default function ProjectCardComponent(props) {
             <CardActions disableSpacing>
 
                 {
-                    (props.view === "OWNER" || props.view === "PARTICIPANT") && <div>
+                    (props.view === "OWNER" || props.view === "PARTICIPANT" || props.view === "PARTICIPANT_OWNER") && <div>
                         <IconButton aria-label="start" onClick={()=>{
                         navigate("/workplace/projects/"+props.language+"/"+props.id)
                     }}>

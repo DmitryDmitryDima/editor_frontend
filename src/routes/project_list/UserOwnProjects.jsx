@@ -12,10 +12,12 @@ import ProjectCreationDialog from "./ProjectCreationDialog.jsx";
 import AddIcon from "@mui/icons-material/Add";
 import {ProjectRemovalDialog} from "./ProjectRemovalDialog.jsx";
 import ProjectInviteDialog from "./ProjectInviteDialog.jsx";
+import {v4 as uuid_gen} from "uuid";
 
 export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
     const {username, uuid, auth, api} = props;
+    const [renderId, setRenderId] = React.useState(uuid_gen());
 
     const [targetJavaProjects, setTargetJavaProjects] = useState([]);
 
@@ -93,14 +95,17 @@ export function UserOwnProjects(props) {
 
     const [inviteDialogProjectId, setInviteDialogProjectId] = useState(null);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [inviteDialogProjectParticipants, setInviteDialogProjectParticipants] = useState([]);
 
     const closeInviteDialog = ()=> {
         setInviteDialogProjectId(null);
         setInviteDialogOpen(false);
+        setInviteDialogProjectParticipants([])
     }
-    const openProjectInviteDialog = (project_id)=> {
+    const openProjectInviteDialog = (project_id, participants)=> {
         setInviteDialogProjectId(project_id);
         setInviteDialogOpen(true);
+        setInviteDialogProjectParticipants(participants);
     }
 
 
@@ -148,9 +153,25 @@ export function UserOwnProjects(props) {
                     if (update.type==="java_project_removal"){
                         removalEventProcessing(update)
                     }
+
+                    if (update.type==="java_project_participant_add"){
+
+                        participantAddEventProcessing(update)
+                    }
                     console.log(update);
 
                 });
+
+                client.subscribe("/users/activity/public/"+uuid, (message) => {
+
+                    const update = JSON.parse(message.body);
+                    if (update.type==="java_project_participant_add"){
+                        participantAddEventProcessing(update)
+
+                    }
+                });
+
+
             };
 
             client.onStompError = function (frame) {
@@ -219,7 +240,19 @@ export function UserOwnProjects(props) {
 
 
                 setTargetJavaProjects(data.authorProjects);
+
                 setParticipantJavaProjects(data.participantProjects)
+
+                // если диалог приглашений открыт, обновляем список участников, чтобы только что добавленный персонаж вновь не всплывал в поиске
+                if (inviteDialogOpen){
+                    console.log("invite dialog participants update");
+                    for (let project of data.authorProjects){
+                        if (project.id===inviteDialogProjectId) {
+                            setInviteDialogProjectParticipants((project.participants));
+                        }
+                    }
+                }
+
             }
             else {
                 console.log(response.status);
@@ -229,6 +262,12 @@ export function UserOwnProjects(props) {
 
         }
     }
+
+    const participantAddEventProcessing = useCallback((event)=>{
+        if (event.context.renderId!==renderId){
+            loadJavaProjects();
+        }
+    }, [])
 
 
     const removalEventProcessing = useCallback((event)=>{
@@ -309,9 +348,15 @@ export function UserOwnProjects(props) {
                     project.id)}
                                       inviteAction = {()=>{
 
-                                          openProjectInviteDialog(project.id)
+                                          openProjectInviteDialog(project.id, project.participants)
                                       }}
-                                      privacyLevel={project.privacyLevel} name={project.name} id={project.id} status={project.status} author={username}></ProjectCardComponent>
+                                      privacyLevel={project.privacyLevel}
+                                      name={project.name} id={project.id} status={project.status}
+                                      author={username}
+
+                ></ProjectCardComponent>
+
+
             ))}
             </Stack>
 
@@ -333,7 +378,11 @@ export function UserOwnProjects(props) {
 
             <ProjectInviteDialog
                 api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId} auth={auth}
-                authUsername={username}
+                authUsername={username} participants={inviteDialogProjectParticipants} updateCallback = {()=>{
+                    console.log("callback")
+                    loadJavaProjects()
+            }}
+                renderId = {renderId}
 
             >
 

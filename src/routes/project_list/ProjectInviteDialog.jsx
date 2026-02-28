@@ -18,6 +18,8 @@ import DirectionsIcon from '@mui/icons-material/Directions';
 import {useState} from "react";
 import {useLocation} from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import {v4 as uuid_gen} from "uuid";
+
 /*
 todo после расширения функционала ссылки будут зависеть от типа проекта
  */
@@ -34,6 +36,7 @@ export default function ProjectInviteDialog(props){
 
 
         setValue("")
+        setSearchResult([])
 
         props.close()
     };
@@ -50,7 +53,8 @@ export default function ProjectInviteDialog(props){
             if (response.status === 200) {
 
                 console.log("response:", response);
-                setSearchResult(response.data.content)
+                console.log(props);
+                setSearchResult(response.data.content.filter(item => (item.username!==props.authUsername) && (!props.participants.some(member=>member===item.uuid))))
 
             }
             else {
@@ -62,6 +66,41 @@ export default function ProjectInviteDialog(props){
 
 
         }
+
+    }
+
+    const handleParticipantAdd = async(user_uuid, username)=>{
+        let corrId = uuid_gen()
+        let address = "/projects/java/addParticipant"
+        let body = JSON.stringify({
+            projectId:props.projectId,
+            userId:user_uuid,
+            username:username
+        })
+        console.log(body);
+
+        try {
+            const response = await props.api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Render-ID":props.renderId,
+                    "X-Correlation-ID": corrId}});
+            console.log(response);
+            if (response.status === 204) {
+                await props.updateCallback()
+
+                searchRequest(value)
+
+                // todo нужно как то обновить список participants во внешнем компоненте
+
+            }
+            else {
+
+
+            }
+        }
+        catch (error) {
+
+
+        }
+
 
     }
 
@@ -179,7 +218,6 @@ export default function ProjectInviteDialog(props){
 
                 <Box mb={3} sx={{minHeight: 280}}>
                     {searchResult
-                        .filter(item => item.username!==props.authUsername)
                         .map((item, index)=>{
 
                         return (
@@ -198,7 +236,10 @@ export default function ProjectInviteDialog(props){
                                 <DialogContentText sx={{ fontWeight: 500 }}>
                                     {item.username}
                                 </DialogContentText>
-                                <IconButton size="small" color="secondary">
+                                <IconButton size="small" color="secondary" onClick={()=>{
+                                    console.log(item)
+                                    handleParticipantAdd(item.uuid, item.username);
+                                }}>
                                     <AddIcon />
                                 </IconButton>
                             </Box>

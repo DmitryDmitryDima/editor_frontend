@@ -93,6 +93,11 @@ export default function UserStrangerProjects(props) {
                     if (update.type==="java_project_removal"){
                         removalEventProcessing(update)
                     }
+
+                    if (update.type==="java_project_participant_add"){
+                        participantAddEventProcessing(update)
+
+                    }
                     console.log(update);
 
                 });
@@ -129,6 +134,10 @@ export default function UserStrangerProjects(props) {
 
 
     }, []);
+
+    const participantAddEventProcessing = useCallback((event)=>{
+        loadJavaProjects()
+    }, [])
 
     const removalEventProcessing = useCallback((event)=>{
         let status = event.status;
@@ -175,6 +184,7 @@ export default function UserStrangerProjects(props) {
                     if (project.participants.includes(props.uuid)){
                         project.viewStatus ="PARTICIPANT"
                     }
+
                     else {
                         project.viewStatus ="READER"
                     }
@@ -184,9 +194,16 @@ export default function UserStrangerProjects(props) {
                     let param = "";
                     data.participantProjects.forEach((project, index) => {
 
-                        if (project.participants.includes(props.uuid)){
+                        if (project.participants.includes(props.uuid) ){
                             project.viewStatus ="PARTICIPANT"
                         }
+
+                        else if (project.author===props.uuid){
+                            project.viewStatus = "PARTICIPANT_OWNER" // ВИДИМ СВОЙ ЖЕ ПРОЕКТ НА ЧУЖОЙ СТРАНИЦЕ
+                        }
+
+
+
                         else {
                             project.viewStatus ="READER"
                         }
