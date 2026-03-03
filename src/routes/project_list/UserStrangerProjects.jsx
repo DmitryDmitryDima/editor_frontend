@@ -73,10 +73,23 @@ export default function UserStrangerProjects(props) {
                     const update = JSON.parse(message.body);
 
                     if (update.type==="java_project_creation_from_template") {
-                        //creationEventProcessing(update);
+                        creationEventProcessing(update);
                     }
                     if (update.type==="java_project_removal"){
-                        //removalEventProcessing(update)
+                        removalEventProcessing(update)
+                    }
+                    console.log(update);
+
+                });
+
+                // подписка на личный паблик (ивент удаления сопряженного публичного проекта)
+                client.subscribe("/users/activity/public/"+uuid, (message) => {
+
+                    const update = JSON.parse(message.body);
+
+
+                    if (update.type==="java_project_removal"){
+                        removalEventProcessing(update)
                     }
                     console.log(update);
 

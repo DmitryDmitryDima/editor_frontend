@@ -169,6 +169,10 @@ export function UserOwnProjects(props) {
                         participantAddEventProcessing(update)
 
                     }
+                    // в зависимости от типа проекта он может прийти как в приватке. так и в паблике
+                    if (update.type==="java_project_removal"){
+                        removalEventProcessing(update)
+                    }
                 });
 
 
