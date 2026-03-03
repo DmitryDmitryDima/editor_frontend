@@ -26,7 +26,7 @@ export function DeckRemovalDialog(props) {
         const data = {deck_id: deck_id}
         console.log(data)
         try {
-            const response = await api.post("/deleteDeck", data, {headers:{'Content-Type': 'application/json'}})
+            const response = await api.post("/api/cards/deleteDeck", data, {headers:{'Content-Type': 'application/json'}})
 
             if (response.status !== 200) {
                 onClose(response.data.detail || "Неизвестная ошибка")
@@ -88,7 +88,7 @@ export function DeckCreationDialog(props){
                     deck_name: deck_name
                 })
 
-                const response = await api.post("/addDeck", body, {headers:{'Content-Type': 'application/json'}});
+                const response = await api.post("/api/cards/addDeck", body, {headers:{'Content-Type': 'application/json'}});
                 if (!response.status===200) {
                     onClose(response.data.detail || "Неизвестная ошибка")
                 }

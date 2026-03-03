@@ -68,29 +68,17 @@ export function CardAddPage(){
     };
 
 
-    useEffect(()=>{
-        let token = localStorage.getItem("accessToken");
-        if (token===null){
-            navigate("/login");
-        }
-        const decoded = jwtDecode(token);
-        console.log(decoded);
 
-        setUsername(decoded.username);
-        setUUID(decoded.sub)
-
-        // загружаем колоды для списка
-        loadDecks()
-
-
-    }, [])
 
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api',
+        baseURL: '/',
     });
 
+
+
+    /*
     // управление токенами
     // Add a request interceptor
     api.interceptors.request.use(
@@ -130,6 +118,8 @@ export function CardAddPage(){
         }
     );
 
+     */
+
     // Add a response interceptor
     api.interceptors.response.use(
         (response) => response,
@@ -144,18 +134,14 @@ export function CardAddPage(){
                 originalRequest._retry = true;
 
                 try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
+                    // чистый запрос
+                    const response = await axios.post('/auth/refresh');
 
 
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
 
                     // Retry the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
                     return axios(originalRequest);
                 } catch (error) {
                     navigate('/login');
@@ -166,9 +152,34 @@ export function CardAddPage(){
         }
     );
 
+    const identify = async () => {
+        try {
+            const identification = await api.get("/auth/identify")
+            setUsername(identification.data.username)
+            setUUID(identification.data.uuid)
+        }
+        catch (error) {
+            navigate('/login');
+        }
+    }
+
+    useEffect(()=>{
+
+        identify()
+        // загружаем колоды для списка
+        loadDecks()
+
+
+    }, [])
+
+
+
+
+
+
     const loadDecks = async () => {
         try {
-            const response = await api.get('/cards/getDecks');
+            const response = await api.get('/api/cards/getDecks');
             if (response.status === 200) {
                 setDecks(response.data);
                 console.log(response.data)
@@ -206,7 +217,7 @@ export function CardAddPage(){
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
-        const apiPath = "/cards/addCard";
+        const apiPath = "/api/cards/addCard";
 
 
         const body = JSON.stringify({
@@ -275,7 +286,7 @@ export function CardAddPage(){
 
                 setLoading(true);
 
-                const response = await api.post("/ai/cards/autocomplete", body, {
+                const response = await api.post("/api/ai/cards/autocomplete", body, {
 
                     headers: {'Content-Type': 'application/json'}});
 

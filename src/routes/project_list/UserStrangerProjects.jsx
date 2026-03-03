@@ -13,7 +13,7 @@ import {AppBarWithDrawer} from "../../elements/AppBarWithDrawer.jsx";
 export default function UserStrangerProjects(props) {
 
     // данные аутентификации
-    const {auth, api, authUsername, uuid, targetUsername, targetUUID} = props;
+    const {api, authUsername, uuid, targetUsername, targetUUID} = props;
 
 
 
@@ -182,7 +182,7 @@ export default function UserStrangerProjects(props) {
 
     const loadJavaProjects =  async () => {
         try {
-            const response =  await api.get('/projects/java/getProjects?targetUsername='+targetUsername);
+            const response =  await api.get('/api/projects/java/getProjects?targetUsername='+targetUsername);
 
             console.log(response)
 
@@ -229,7 +229,7 @@ export default function UserStrangerProjects(props) {
                         }
                     })
 
-                    const resolveResponse = await auth.get("/resolveBatch?uuids="+param);
+                    const resolveResponse = await api.get("/auth/resolveBatch?uuids="+param);
 
                     for (let entry of resolveResponse.data) {
                         resolveMap.set(entry.uuid, entry.username)

@@ -63,7 +63,7 @@ export default function ProjectCreationDialog(props) {
         const formJson = Object.fromEntries(formData.entries());
         console.log(formJson);
 
-        let address = "/projects/java/createProject";
+        let address = "/api/projects/java/createProject";
 
         let body = JSON.stringify({
             projectType: type,

@@ -16,7 +16,7 @@ import {v4 as uuid_gen} from "uuid";
 
 export function UserOwnProjects(props) {
     // auth context - для собственной страницы не нужно дополнительно сравнивать username
-    const {username, uuid, auth, api} = props;
+    const {username, uuid, api} = props;
     const [renderId, setRenderId] = React.useState(uuid_gen());
 
     const [targetJavaProjects, setTargetJavaProjects] = useState([]);
@@ -212,7 +212,7 @@ export function UserOwnProjects(props) {
 
     const loadJavaProjects = async () => {
         try {
-            const response = await api.get('/projects/java/getProjects?targetUsername='+username);
+            const response = await api.get('/api/projects/java/getProjects?targetUsername='+username);
 
             console.log(response)
 
@@ -233,7 +233,7 @@ export function UserOwnProjects(props) {
                         }
                     })
 
-                    const resolveResponse = await auth.get("/resolveBatch?uuids="+param);
+                    const resolveResponse = await api.get("/auth/resolveBatch?uuids="+param);
 
                     for (let entry of resolveResponse.data) {
                         resolveMap.set(entry.uuid, entry.username)
@@ -381,7 +381,7 @@ export function UserOwnProjects(props) {
 
 
             <ProjectInviteDialog
-                api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId} auth={auth}
+                api={api} opened = {inviteDialogOpen} close = {closeInviteDialog} projectId = {inviteDialogProjectId}
                 authUsername={username} participants={inviteDialogProjectParticipants} updateCallback = {()=>{
                     console.log("callback")
                     loadJavaProjects()

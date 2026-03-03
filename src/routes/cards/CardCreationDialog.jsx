@@ -53,7 +53,7 @@ export default function CardCreationDialog(props) {
         event.preventDefault();
 
 
-        const apiPath = "/cards/addCard";
+        const apiPath = "/api/cards/addCard";
 
 
         const body = JSON.stringify({
@@ -116,7 +116,7 @@ export default function CardCreationDialog(props) {
 
                 setLoading(true);
 
-                const response = await props.api.post("/ai/cards/autocomplete", body, {
+                const response = await props.api.post("/api/ai/cards/autocomplete", body, {
 
                     headers: {'Content-Type': 'application/json'}});
 

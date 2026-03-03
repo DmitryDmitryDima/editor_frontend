@@ -80,12 +80,9 @@ export function JavaProjectUnitedPage() {
     const navigate = useNavigate();
     // api для общения с сервисами
     const api = axios.create({
-        baseURL: '/api/',
+        baseURL: '/',
     });
-    // api для общения с сервисами
-    const auth = axios.create({
-        baseURL: '/auth/',
-    });
+
 
 
 
@@ -165,6 +162,7 @@ export function JavaProjectUnitedPage() {
 
 
     useEffect(()=>{
+        /*
         let token = localStorage.getItem("accessToken");
         if (token!==null){
             const decoded = jwtDecode(token);
@@ -179,58 +177,39 @@ export function JavaProjectUnitedPage() {
 
         }
 
+         */
+        identify()
 
 
     }, [])
 
+    const identify = async () => {
+        try {
+            const identification = await api.get("/auth/identify")
+            setAuthUsername(identification.data.username)
+            setAuthUUID(identification.data.uuid)
 
+            authUsernameRef.current = identification.data.username;
+            authUUIDRef.current = identification.data.uuid;
 
-
-
-
-
-
-
-
-
-
-    // управление токенами
-    // Add a request interceptor
-    api.interceptors.request.use(
-        async (config) => {
-
-            const token = localStorage.getItem('accessToken');
-
-            const decoded = jwtDecode(token);
-            const exp = decoded.exp;
-            const now = Math.floor(Date.now() / 1000)
-            if (token && exp>now) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            else {
-                try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
-
-
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
-                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-
-                } catch (error) {
-                    throw new Error('invalid refresh');
-                }
-            }
-            return config;
-        },
-        (error) => {
-
-            Promise.reject(error)
         }
-    );
+        catch (error) {
+            navigate('/login');
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Add a response interceptor
     api.interceptors.response.use(
@@ -239,6 +218,7 @@ export function JavaProjectUnitedPage() {
             const originalRequest = error.config;
 
             console.log(error)
+            console.log("interceptor")
 
             // If the error status is 401 and there is no originalRequest._retry flag,
             // it means the token has expired and we need to refresh it
@@ -246,18 +226,14 @@ export function JavaProjectUnitedPage() {
                 originalRequest._retry = true;
 
                 try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+                    await axios.post('/auth/refresh');
 
 
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
 
                     // Retry the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
                     return axios(originalRequest);
                 } catch (error) {
                     navigate('/login');
@@ -1019,7 +995,7 @@ export function JavaProjectUnitedPage() {
         try {
 
             console.log("loadStructure")
-            let way = '/projects/java/'+project_id+'/actions/trigger/'+corrId
+            let way = 'api//projects/java/'+project_id+'/actions/trigger/'+corrId
             await api.post(way, answer, {headers: {'Content-Type': 'application/json',
                     "X-Render-ID":renderId,
                     "X-Correlation-ID": corrId}});
@@ -1035,7 +1011,7 @@ export function JavaProjectUnitedPage() {
         try {
 
             console.log("loadStructure")
-            const response = await api.get('/projects/java/'+project_id+'/actions/read');
+            const response = await api.get('/api/projects/java/'+project_id+'/actions/read');
 
             if (response.status === 200) {
 
@@ -1061,7 +1037,7 @@ export function JavaProjectUnitedPage() {
 
     const resolveAuthor = async (author_uuid)=>{
         try {
-            const response = await auth.get('/resolveUUID/'+author_uuid);
+            const response = await api.get('/auth/resolveUUID/'+author_uuid);
 
             if (response.status === 200) {
 
@@ -1080,7 +1056,7 @@ export function JavaProjectUnitedPage() {
     }
 
     const loadRecentFiles = async () => {
-        let address  = "/projects/java/"+project_id+"/actions/readRecentFiles";
+        let address  = "/api/projects/java/"+project_id+"/actions/readRecentFiles";
         try {
             const response = await api.get(address);
 
@@ -1105,7 +1081,7 @@ export function JavaProjectUnitedPage() {
             return;
         }
 
-        let address = "/projects/java/"+project_id+"/actions/autosave/"+openedFileIdRef.current;
+        let address = "/api/projects/java/"+project_id+"/actions/autosave/"+openedFileIdRef.current;
         let content;
         if (isJavaFileRef.current){
             content = javaValueRef.current
@@ -1132,7 +1108,7 @@ export function JavaProjectUnitedPage() {
 
     const removeFile = async ()=>{
         let file_id = selectedTreeData.data.originalId
-        let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
+        let address = "/api/projects/java/"+project_id+"/actions/removeFile/"+file_id;
         const correlationId = uuid();
         console.log(correlationId, "generated")
         simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
@@ -1222,7 +1198,7 @@ export function JavaProjectUnitedPage() {
         if (openedFileIdRef.current==null){
             return;
         }
-        let address = "/projects/java/"+project_id+"/actions/saveFile/"+openedFileIdRef.current;
+        let address = "/api/projects/java/"+project_id+"/actions/saveFile/"+openedFileIdRef.current;
 
         let content;
         if (isJavaFileRef.current){
@@ -1279,7 +1255,7 @@ export function JavaProjectUnitedPage() {
         console.log(id)
         console.log(project_id)
 
-        let address  = "/projects/java/"+project_id+"/actions/readFile/"+id;
+        let address  = "/api/projects/java/"+project_id+"/actions/readFile/"+id;
         try {
             const response = await api.get(address);
 

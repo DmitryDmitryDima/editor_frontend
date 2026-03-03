@@ -29,7 +29,7 @@ export function ProjectRemovalDialog(props) {
 
     const deleting = async ()=>{
         // don't forget to generate and set correlation id for dialog
-        let address = "/projects/java/deleteProject"
+        let address = "/api/projects/java/deleteProject"
         const correlationId = uuid();
 
         props.changeCorrelationId(correlationId);

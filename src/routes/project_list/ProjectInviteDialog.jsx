@@ -46,9 +46,9 @@ export default function ProjectInviteDialog(props){
             setSearchResult([]);
             return;
         }
-        let address = "/search?"+"startsWith="+str+"&number=0&size=5";
+        let address = "/auth/search?"+"startsWith="+str+"&number=0&size=5";
         try {
-            const response = await props.auth.get(address,{headers: {'Content-Type': 'application/json'}});
+            const response = await props.api.get(address,{headers: {'Content-Type': 'application/json'}});
             console.log(response);
             if (response.status === 200) {
 
@@ -71,7 +71,7 @@ export default function ProjectInviteDialog(props){
 
     const handleParticipantAdd = async(user_uuid, username)=>{
         let corrId = uuid_gen()
-        let address = "/projects/java/addParticipant"
+        let address = "/api/projects/java/addParticipant"
         let body = JSON.stringify({
             projectId:props.projectId,
             userId:user_uuid,
@@ -106,7 +106,7 @@ export default function ProjectInviteDialog(props){
 
     const handleLinkGenerate = async ()=>{
         console.log(props.projectId)
-        let address = "/projects/java/createInviteToken"
+        let address = "/api/projects/java/createInviteToken"
         let body = JSON.stringify({
             projectId:props.projectId
         })

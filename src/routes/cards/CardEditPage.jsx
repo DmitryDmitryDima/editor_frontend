@@ -58,15 +58,7 @@ export function CardEditPage(){
 
 
     useEffect(()=>{
-        let token = localStorage.getItem("accessToken");
-        if (token===null){
-            navigate("/login");
-        }
-        const decoded = jwtDecode(token);
-        console.log(decoded);
-
-        setUsername(decoded.username);
-        setUUID(decoded.sub)
+        identify()
 
         loadCard()
 
@@ -80,47 +72,10 @@ export function CardEditPage(){
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/cards/',
+        baseURL: '/',
     });
 
-    // управление токенами
-    // Add a request interceptor
-    api.interceptors.request.use(
-        async (config) => {
 
-            console.log("request interception");
-
-            const token = localStorage.getItem('accessToken');
-            const decoded = jwtDecode(token);
-            const exp = decoded.exp;
-            const now = Math.floor(Date.now() / 1000)
-            if (token && exp>now) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            else {
-                try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
-
-
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
-                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-
-                } catch (error) {
-                    throw new Error('invalid refresh');
-                }
-            }
-            return config;
-        },
-        (error) => {
-
-            Promise.reject(error)
-        }
-    );
 
     // Add a response interceptor
     api.interceptors.response.use(
@@ -129,6 +84,7 @@ export function CardEditPage(){
             const originalRequest = error.config;
 
             console.log(error)
+            console.log("interceptor")
 
             // If the error status is 401 and there is no originalRequest._retry flag,
             // it means the token has expired and we need to refresh it
@@ -136,18 +92,14 @@ export function CardEditPage(){
                 originalRequest._retry = true;
 
                 try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+                    await axios.post('/auth/refresh');
 
 
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
 
                     // Retry the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
                     return axios(originalRequest);
                 } catch (error) {
                     navigate('/login');
@@ -158,9 +110,20 @@ export function CardEditPage(){
         }
     );
 
+    const identify = async () => {
+        try {
+            const identification = await api.get("/auth/identify")
+            setUsername(identification.data.username)
+            setUUID(identification.data.uuid)
+        }
+        catch (error) {
+            navigate('/login');
+        }
+    }
+
     const loadCard = async () => {
         try {
-            const response = await api.get("/getCard?&card_id="+card_id);
+            const response = await api.get("/api/cards/getCard?&card_id="+card_id);
             if (response.status === 200) {
 
                 setCard(response.data)
@@ -186,7 +149,7 @@ export function CardEditPage(){
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
-        const apiPath = "/editCard";
+        const apiPath = "/api/cards/editCard";
 
 
         const body = JSON.stringify({

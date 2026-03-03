@@ -36,45 +36,10 @@ export function CardRepeater() {
 
     // api для общения с карточным сервисом
     const api = axios.create({
-        baseURL: '/api/cards/',
+        baseURL: '/',
     });
 
-    // управление токенами
-    // Add a request interceptor
-    api.interceptors.request.use(
-        async (config) => {
 
-            const token = localStorage.getItem('accessToken');
-            const decoded = jwtDecode(token);
-            const exp = decoded.exp;
-            const now = Math.floor(Date.now() / 1000)
-            if (token && exp>now) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            else {
-                try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
-
-
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
-                    config.headers.Authorization = `Bearer ${response.data.accessToken}`;
-
-                } catch (error) {
-                    throw new Error('invalid refresh');
-                }
-            }
-            return config;
-        },
-        (error) => {
-
-            Promise.reject(error)
-        }
-    );
 
     // Add a response interceptor
     api.interceptors.response.use(
@@ -83,6 +48,7 @@ export function CardRepeater() {
             const originalRequest = error.config;
 
             console.log(error)
+            console.log("interceptor")
 
             // If the error status is 401 and there is no originalRequest._retry flag,
             // it means the token has expired and we need to refresh it
@@ -90,18 +56,14 @@ export function CardRepeater() {
                 originalRequest._retry = true;
 
                 try {
-                    const refreshToken = localStorage.getItem('refreshToken');
-                    if (!refreshToken) {
-                        throw new Error('invalid refreshToken');
-                    }
-                    const response = await axios.post('/auth/refresh', { refreshToken });
+
+                    await axios.post('/auth/refresh');
 
 
-                    localStorage.setItem('accessToken', response.data.accessToken);
-                    localStorage.setItem("refreshToken", response.data.refreshToken);
+
 
                     // Retry the original request with the new token
-                    originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+
                     return axios(originalRequest);
                 } catch (error) {
                     navigate('/login');
@@ -114,7 +76,7 @@ export function CardRepeater() {
 
 
     const fetchCard = async () => {
-        let apiPath = deck_id===null?"/next":"/next/"+deck_id;
+        let apiPath ="/api/cards/"+ (deck_id===null?"/next":"/next/"+deck_id);
 
         const response = await api.get(apiPath)
 
@@ -148,17 +110,20 @@ export function CardRepeater() {
 
 
     useEffect(() => {
-        let token = localStorage.getItem("accessToken");
-        if (token===null){
-            navigate("/login");
-        }
-        const decoded = jwtDecode(token);
-        console.log(decoded);
-
-        setUsername(decoded.username);
-        setUUID(decoded.sub)
+        identify()
         fetchCard()
     }, [])
+
+    const identify = async () => {
+        try {
+            const identification = await api.get("/auth/identify")
+            setUsername(identification.data.username)
+            setUUID(identification.data.uuid)
+        }
+        catch (error) {
+            navigate('/login');
+        }
+    }
 
 
 
@@ -166,7 +131,7 @@ export function CardRepeater() {
     const sendCardToServer = async (rating)=>{
 
 
-        let apiPath = "/repetition"
+        let apiPath = "/api/cards/repetition"
 
         const body = JSON.stringify({
             card_id:card.card_id,
@@ -198,7 +163,7 @@ export function CardRepeater() {
     }
 
     const handleDelete = async () => {
-        let apiPath = "/deleteCard"
+        let apiPath = "/api/cards/deleteCard"
 
         const body = JSON.stringify({
             card_id:card.card_id,

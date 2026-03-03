@@ -156,9 +156,11 @@ export function LoginPage() {
             const response = await fetch(apiPath, {method:"POST", body: body,
                 headers: {"Content-Type": "application/json"}});
 
+            console.log(response)
 
 
-            const answerBody = await response.json();
+
+
 
             if (response.status===401){
                 setUsernameError(true);
@@ -168,6 +170,7 @@ export function LoginPage() {
             }
 
             if (!response.ok){
+
                 setUsernameError(true);
                 setUsernameErrorMessage('Неизвестная ошибка, попробуйте позже');
 
@@ -178,8 +181,7 @@ export function LoginPage() {
 
 
 
-            localStorage.setItem("accessToken", answerBody.accessToken);
-            localStorage.setItem("refreshToken", answerBody.refreshToken);
+
 
 
 
@@ -195,7 +197,7 @@ export function LoginPage() {
 
 
         } catch (err) {
-
+            console.log(err);
 
         } finally {
 

@@ -65,14 +65,10 @@ export function Bar(props){
     const logout = async ()=>{
 
         try {
-            let refreshToken = localStorage.getItem('refreshToken');
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem("refreshToken");
-
-            console.log("make logout")
 
 
-            await axios.post("/auth/revoke", {refreshToken})
+
+            await axios.post("/auth/revoke")
         }
         catch (error) {
             console.log(error);
