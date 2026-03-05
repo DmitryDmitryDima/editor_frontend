@@ -58,9 +58,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CreateIcon from "@mui/icons-material/Create";
 import DoubleArrowIcon from "@mui/icons-material/DoubleArrow";
 import ChatIcon from "@mui/icons-material/Chat";
+import GroupsIcon from '@mui/icons-material/Groups';
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
-import {v4 as uuid} from "uuid";
+import {v4 as uuid_gen, v4 as uuid} from "uuid";
 import {Client} from "@stomp/stompjs";
 import {SimpleYesOrNotDialog} from "./SimpleYesOrNotDialog.jsx";
 import {PollingDialogWithTimer} from "./PollingDialogWithTimer.jsx";
@@ -94,6 +95,7 @@ export function JavaProjectUnitedPage() {
 
     // автор проекта - username
     const[authorUsername, setAuthorUsername] = useState("");
+    const[authorUUID, setAuthorUUID] = useState(null);
 
 
     // диалоги
@@ -180,6 +182,8 @@ export function JavaProjectUnitedPage() {
          */
         identify()
 
+        onlineList()
+
 
     }, [])
 
@@ -197,6 +201,8 @@ export function JavaProjectUnitedPage() {
             navigate('/login');
         }
     }
+
+
 
 
 
@@ -264,6 +270,15 @@ export function JavaProjectUnitedPage() {
     // Поиск (Search)
     // Настройки (Settings)
     const [drawerRegime, setDrawerRegime] = useState("Structure");
+
+
+    const [resolveMap, setResolveMap] = useState(new Map());
+    const [statusMap, setStatusMap] = useState(new Map());
+
+
+
+
+
 
 
 
@@ -341,10 +356,10 @@ export function JavaProjectUnitedPage() {
         // todo аккуратнее с sx на родительском box
         <Box padding={1} sx={{maxHeight:"100vh", justifyContent:"space-between", display:"flex", flexDirection:"column"}} >
             <Typography sx={{ my: 2 }}>
-                {project_name} by {authorUsername}
+                {project_name} by {resolveMap.get(authorUUID)?.username}
             </Typography>
-            {authUsername!==authorUsername && <Typography onClick={
-                ()=>{navigate("/users/"+authorUsername+"/projects");}
+            {authUsername!==resolveMap.get(authorUUID)?.username && <Typography onClick={
+                ()=>{navigate("/users/"+resolveMap.get(authorUUID)?.username+"/projects");}
             }>К проектам автора</Typography>}
 
             <Typography onClick={
@@ -368,16 +383,21 @@ export function JavaProjectUnitedPage() {
                 justifyContent: 'center',
 
             }}>
-            <ButtonGroup     aria-label="Basic button group">
-                <Button onClick={()=>{
+            <ButtonGroup     aria-label="Basic button group"
+                             >
+
+                <IconButton onClick={()=>{
                     setDrawerRegime("Structure");
-                }}><SourceIcon/></Button>
-                <Button onClick={()=>{
-                    setDrawerRegime("Search");
-                }}><SearchIcon/></Button>
-                <Button
+                }}><SourceIcon/></IconButton>
+
+                <IconButton
                     onClick={()=>{setDrawerRegime("Settings")}}
-                ><SettingsIcon/></Button>
+                ><SettingsIcon/></IconButton>
+
+                <IconButton onClick={()=>{setDrawerRegime("Members")}}>
+                    <GroupsIcon/>
+                </IconButton>
+
 
 
             </ButtonGroup>
@@ -506,8 +526,30 @@ export function JavaProjectUnitedPage() {
 
 
 
-            {drawerRegime === "Search" && <Typography>Поиск</Typography>}
-            {drawerRegime === "Settings" &&<Typography>Настройки</Typography>}
+
+            {drawerRegime === "Settings" &&
+
+                <Box sx={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
+                    <Typography>Настройки</Typography>
+                </Box>
+            }
+            {drawerRegime === "Members" &&
+                <Box sx={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
+                    <Typography>Участники</Typography>
+                    {Array.from(resolveMap.values()).map((member)=>{
+                        return <div>
+                            <Typography>{member.username} {statusMap.get(member.uuid)}</Typography>
+
+
+                        </div>
+                    })}
+
+                    {authUsername!==resolveMap.get(authorUUID)?.username && <Button onClick={()=>{
+                        removeParticipant(authUUID, authUsername);
+                    }}>Покинуть проект</Button>}
+                </Box>
+
+                }
 
 
 
@@ -739,6 +781,8 @@ export function JavaProjectUnitedPage() {
                 heartbeatOutgoing: 4000,
             });
 
+
+
             client.onConnect = function (frame) {
                 // Do something; all subscriptions must be done in this callback.
                 // This is needed because it runs after a (re)connect.
@@ -748,10 +792,23 @@ export function JavaProjectUnitedPage() {
 
                     console.log(update+" received");
 
+                    if (update.type==="project_sub" || update.type==="project_unsub"){
+
+                        console.log("действие со статусом "+update.type)
+                        onlineList()
+
+
+                    }
+
+                    if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
+                        loadStructure()
+                    }
+
 
                     if (update.type==="java_project_file_save") {
                         file_save_processing(update)
                     }
+
 
                     // уведомление
                     if (update.type==="java_project_file_save_system"){
@@ -767,7 +824,11 @@ export function JavaProjectUnitedPage() {
 
                     //console.log(update);
 
-                });
+                }
+
+
+
+                );
             };
 
             client.onStompError = function (frame) {
@@ -1007,6 +1068,43 @@ export function JavaProjectUnitedPage() {
         }
     }
 
+    const onlineList = async () => {
+        try {
+            let statusMapNew = structuredClone(statusMap)
+            console.log("online request")
+            const online = await api.get("/api/observer/getProjectSubscriptions/"+project_id)
+            //console.log(resolveMap)
+            let onlineUUIDs = []
+
+            online.data.forEach(onlineMember=>{
+                //console.log(onlineMember.uuid, "is online")
+
+                statusMapNew.set(onlineMember.uuid, "online")
+                onlineUUIDs.push(onlineMember.uuid);
+
+            })
+
+            statusMapNew.forEach((value, key)=>{
+
+                //console.log(key, onlineUUIDs, onlineUUIDs.includes(key) )
+                if (!onlineUUIDs.includes(key)){
+                    statusMapNew.set(key, "offline")
+                }
+
+
+
+
+            })
+
+            setStatusMap(statusMapNew)
+
+
+        }
+        catch (error) {
+            console.log("ошибка запроса онлайна "+error);
+        }
+    }
+
     const loadStructure = async () => {
         try {
 
@@ -1020,7 +1118,10 @@ export function JavaProjectUnitedPage() {
                 setProjectName(response.data.name);
                 setTreeData(response.data.structure);
 
-                await resolveAuthor(response.data.author);
+
+
+                //await resolveAuthor(response.data.author);
+                await resolveProjectMembers(response.data.author, response.data.participants);
 
 
 
@@ -1029,6 +1130,42 @@ export function JavaProjectUnitedPage() {
             else {
                 console.log(response.status);
             }
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
+    const resolveProjectMembers = async (author_uuid, participants)=>{
+        try {
+            let param = ""
+            participants.forEach((participant, index) => {
+                param+=participant+",";
+            })
+
+            param+=author_uuid
+            const response = await api.get('/auth/resolveBatch?uuids='+param);
+
+            if (response.status === 200) {
+
+
+
+                response.data.forEach(item => {
+
+                    resolveMap.set(item.uuid, {uuid:item.uuid, username:item.username})
+                    statusMap.set(item.uuid, "offline")
+                })
+
+                setAuthorUUID(author_uuid)
+
+
+
+            }
+            else {
+                console.log(response.status);
+            }
+            // обновляем статистику онлайна
+            onlineList()
         } catch (error) {
             console.log(error);
 
@@ -1053,6 +1190,39 @@ export function JavaProjectUnitedPage() {
             console.log(error);
 
         }
+    }
+
+    const removeParticipant = async (uuid, username)=>{
+        console.log(uuid)
+
+        let corrId = uuid_gen()
+        let address = "/api/projects/java/removeParticipant"
+        let body = JSON.stringify({
+            projectId:project_id,
+            userId:uuid,
+            username:username
+        })
+
+        try {
+            const response = await api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Render-ID":renderId,
+                    "X-Correlation-ID": corrId}});
+            console.log(response);
+            if (response.status === 204) {
+
+                // todo нужно как то обновить список participants во внешнем компоненте
+
+            }
+            else {
+
+
+            }
+        }
+        catch (error) {
+
+
+        }
+
+        console.log(body)
     }
 
     const loadRecentFiles = async () => {
