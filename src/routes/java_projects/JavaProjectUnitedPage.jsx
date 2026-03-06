@@ -50,6 +50,7 @@ import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
 import {Tree} from "react-arborist";
 import {FaFile, FaFolder} from "react-icons/fa";
+import { FaBan } from "react-icons/fa";
 
 import {GoPencil} from "react-icons/go";
 import AppBar from "@mui/material/AppBar";
@@ -539,6 +540,11 @@ export function JavaProjectUnitedPage() {
                     {Array.from(resolveMap.values()).map((member)=>{
                         return <div>
                             <Typography>{member.username} {statusMap.get(member.uuid)}</Typography>
+                            {(authUsername==resolveMap.get(authorUUID)?.username && authUsername!=member.username) && <Button
+                            onClick={()=>{
+                                removeParticipant(member.uuid, member.username);
+                            }}
+                            ><FaBan/></Button>}
 
 
                         </div>
@@ -773,8 +779,9 @@ export function JavaProjectUnitedPage() {
             const client = new Client({
                 brokerURL: '/ws/notifications',
 
+
                 debug: function (str) {
-                    console.log(str);
+                    //console.log(str+" debug");
                 },
                 reconnectDelay: 5000,
                 heartbeatIncoming: 4000,
@@ -801,7 +808,7 @@ export function JavaProjectUnitedPage() {
                     }
 
                     if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
-                        loadStructure()
+                        participant_action_processing(update);
                     }
 
 
@@ -840,6 +847,8 @@ export function JavaProjectUnitedPage() {
                 console.log('Additional details: ' + frame.body);
             };
 
+
+
             client.activate();
             clientRef.current = client;
         }
@@ -860,6 +869,21 @@ export function JavaProjectUnitedPage() {
 
 
     }, []);
+
+
+    const participant_action_processing = useCallback((event)=>{
+        setBarNotificationContent(event.message)
+        setShowBarNotification(true)
+        if (event.type==="java_project_participant_remove"){
+            let data = JSON.parse(event.data);
+
+            if (data.uuid===authUUIDRef.current){
+                navigate("/users/"+authUsernameRef.current+"/projects");
+            }
+        }
+        loadStructure()
+
+    }, [])
 
 
     const file_removal_processing = useCallback((event)=>{
@@ -1149,12 +1173,16 @@ export function JavaProjectUnitedPage() {
             if (response.status === 200) {
 
 
-
+                let resolveMapNew = new Map()
                 response.data.forEach(item => {
 
-                    resolveMap.set(item.uuid, {uuid:item.uuid, username:item.username})
+                    resolveMapNew.set(item.uuid, {uuid:item.uuid, username:item.username})
                     statusMap.set(item.uuid, "offline")
                 })
+
+                setResolveMap(resolveMapNew)
+
+
 
                 setAuthorUUID(author_uuid)
 

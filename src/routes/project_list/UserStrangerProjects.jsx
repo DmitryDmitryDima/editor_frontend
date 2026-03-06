@@ -107,8 +107,8 @@ export default function UserStrangerProjects(props) {
                         removalEventProcessing(update)
                     }
 
-                    if (update.type==="java_project_participant_add"){
-                        participantAddEventProcessing(update)
+                    if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
+                        participantActionEventProcessing(update)
 
                     }
                     console.log(update);
@@ -148,7 +148,7 @@ export default function UserStrangerProjects(props) {
 
     }, []);
 
-    const participantAddEventProcessing = useCallback((event)=>{
+    const participantActionEventProcessing = useCallback((event)=>{
         loadJavaProjects()
     }, [])
 

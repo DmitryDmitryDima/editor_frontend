@@ -154,9 +154,9 @@ export function UserOwnProjects(props) {
                         removalEventProcessing(update)
                     }
 
-                    if (update.type==="java_project_participant_add"){
+                    if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
 
-                        participantAddEventProcessing(update)
+                        participantsActionEventProcessing(update)
                     }
                     console.log(update);
 
@@ -165,8 +165,9 @@ export function UserOwnProjects(props) {
                 client.subscribe("/users/activity/public/"+uuid, (message) => {
 
                     const update = JSON.parse(message.body);
-                    if (update.type==="java_project_participant_add"){
-                        participantAddEventProcessing(update)
+                    console.log(update.type, "type of update")
+                    if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
+                        participantsActionEventProcessing(update)
 
                     }
                     // в зависимости от типа проекта он может прийти как в приватке. так и в паблике
@@ -267,8 +268,10 @@ export function UserOwnProjects(props) {
         }
     }
 
-    const participantAddEventProcessing = useCallback((event)=>{
+    const participantsActionEventProcessing = useCallback((event)=>{
+        console.log("participant action triggered")
         if (event.context.renderId!==renderId){
+
             loadJavaProjects();
         }
     }, [])
