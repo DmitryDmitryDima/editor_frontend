@@ -258,6 +258,7 @@ export function JavaProjectUnitedPage() {
 
 
     const isJavaFileRef = useRef(true);
+    const isNoFileOpenedRef = useRef(true);
 
     const javaEditorRef = useRef(null);
     const javaEditorCursorRef = useRef(null);
@@ -340,15 +341,15 @@ export function JavaProjectUnitedPage() {
 
     // компонент консоли
     const consoleComponent = (
-        <Box  padding={2}  minWidth={"100vw"} minHeight={"85vh"} >
-            <Typography>Console</Typography>
+        <Box  padding={2}  minWidth={"100vw"} minHeight={"100vh"} >
+            <Typography color="white">Console</Typography>
         </Box>
     )
 
     // chatComponent component
     const chatComponent = (
-        <Box  padding={2}  minWidth={"100vw"} minHeight={"85vh"} >
-            <Typography>Chat</Typography>
+        <Box  padding={2}  minWidth={"100vw"} minHeight={"100vh"} >
+            <Typography color="white">Chat</Typography>
         </Box>
     )
 
@@ -356,16 +357,39 @@ export function JavaProjectUnitedPage() {
     const drawer = (
         // todo аккуратнее с sx на родительском box
         <Box padding={1} sx={{maxHeight:"100vh", justifyContent:"space-between", display:"flex", flexDirection:"column"}} >
-            <Typography sx={{ my: 2 }}>
-                {project_name} by {resolveMap.get(authorUUID)?.username}
-            </Typography>
-            {authUsername!==resolveMap.get(authorUUID)?.username && <Typography onClick={
-                ()=>{navigate("/users/"+resolveMap.get(authorUUID)?.username+"/projects");}
-            }>К проектам автора</Typography>}
 
-            <Typography onClick={
+
+            <Box sx={{display:"flex",
+                justifyContent:"center",
+                alignItems:"center", flexWrap: "wrap"}}>
+
+            <Typography sx={{ mt: 0, mb:1, fontWeight:"bold", fontSize:"0.75rem" }}>
+                {project_name} от {resolveMap.get(authorUUID)?.username}
+            </Typography>
+
+
+
+            </Box>
+
+
+            <Box sx={{
+                display: "flex",        // Включаем флекс-режим
+                alignItems: "center",   // Центрируем по вертикали
+                width: "100%"           // Контейнер на всю ширину (важно для ml: "auto")
+            }}>
+
+
+            <Typography sx={{ // 2. Это прижимает кнопку вправо
+
+                }} onClick={
                 ()=>{navigate("/users/"+authUsername+"/projects");}
-            }>Мои проекты {authUsername}</Typography>
+            }>Мои проекты </Typography>
+
+                {authUsername!==resolveMap.get(authorUUID)?.username && <Typography sx={{ml: "auto"}} onClick={
+                    ()=>{navigate("/users/"+resolveMap.get(authorUUID)?.username+"/projects");}
+                }>Проекты автора</Typography>}
+
+            </Box>
 
 
 
@@ -413,6 +437,12 @@ export function JavaProjectUnitedPage() {
 
             {drawerRegime === "Structure" &&
                 <Box sx={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
+
+                    <Box sx={{display:"flex",
+                        justifyContent:"center",
+                        alignItems:"center", flexWrap: "wrap"}}>
+                        <Typography fontWeight="bold">Структура</Typography>
+                    </Box>
                 <Tree data={treeData}
 
                       openByDefault={false}
@@ -536,23 +566,83 @@ export function JavaProjectUnitedPage() {
             }
             {drawerRegime === "Members" &&
                 <Box sx={{minHeight:"100vh", display:"flex", flexDirection:"column"}}>
-                    <Typography>Участники</Typography>
+
+
+
+                    <Box sx={{display:"flex",
+                        justifyContent:"center",
+                        alignItems:"center", flexWrap: "wrap"}}>
+                    <Typography fontWeight="bold">Участники</Typography>
+                    </Box>
+
+
+
+
+
+
                     {Array.from(resolveMap.values()).map((member)=>{
-                        return <div>
-                            <Typography>{member.username} {statusMap.get(member.uuid)}</Typography>
+                        return <Box sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            p: 1,
+                            gap: 1
+
+                        }}>
+
+                            <Typography >{member.username}</Typography><Typography sx={{color:"#08C985"}}> {statusMap.get(member.uuid)==="online"?"●":""} </Typography>
                             {(authUsername==resolveMap.get(authorUUID)?.username && authUsername!=member.username) && <Button
+
+                                sx={{
+                                    color: "#000000",
+                                    ml: "auto", // 2. Это прижимает кнопку вправо
+                                    minWidth: 0, // Убирает стандартные отступы кнопки
+                                    p: 0.5,      // Немного места вокруг иконки
+                                    "&:hover": {
+                                        backgroundColor: "rgba(0,0,0,0.05)" // Легкий фон при наведении
+                                    }
+                                }}
                             onClick={()=>{
                                 removeParticipant(member.uuid, member.username);
                             }}
-                            ><FaBan/></Button>}
+                            >
+
+                                <FaBan/>
+
+                            </Button>}
 
 
-                        </div>
-                    })}
 
-                    {authUsername!==resolveMap.get(authorUUID)?.username && <Button onClick={()=>{
+
+                        </Box>
+                    }
+
+                    )}
+
+                    <Box
+
+                        sx={{
+                            flexGrow: 1,
+                        }}
+                    >
+                    </Box>
+
+                    <Box
+                        sx={{
+
+                            position: 'sticky', // Use 'sticky' for relative sticky positioning
+                            bottom: 0,          // Stick to the bottom of the parent container
+                            padding: 2,         // Add some padding
+                            backgroundColor: 'background.paper', // Match the background
+                            zIndex: 1,          // Ensure it's above other scrolling content
+                            display: 'flex',
+                            justifyContent: 'center', // Align buttons to the right
+                            gap: 2, // Space between buttons
+                        }}
+                    >
+                    {authUsername!==resolveMap.get(authorUUID)?.username && <Button sx ={{backgroundColor: "#000000", color:"#ffffff"}}onClick={()=>{
                         removeParticipant(authUUID, authUsername);
                     }}>Покинуть проект</Button>}
+                    </Box>
                 </Box>
 
                 }
@@ -627,7 +717,7 @@ export function JavaProjectUnitedPage() {
     // блок контента для slate
     const slateContent = (
 
-        <Box padding={2}  minWidth={"100vw"} minHeight={"100%"} >
+        <Box bgcolor="#282c34" padding={2}  minWidth={"100vw"} minHeight={"100%"}  >
 
             <Slate editor={slateEditor} initialValue={valueForSlate}
                    onChange={newValue=>{
@@ -648,12 +738,14 @@ export function JavaProjectUnitedPage() {
             >
                 <Editable
                     style={{
+                        color:"white",
+                        backgroundColor: "transparent",
                         width: '100%',
                         wordWrap: 'break-word',
                         wordBreak: 'break-word',
                         whiteSpace: 'pre-wrap',
                         overflowWrap: 'break-word',
-                        minHeight: '80vh', // todo here is trick
+                        minHeight: '100vh', // todo here is trick
 
                         outline: 'none'
                     }}
@@ -690,7 +782,7 @@ export function JavaProjectUnitedPage() {
 
 
 
-            <CodeMirror  minHeight={"85vh"} minWidth={"100vw"} value={valueJava}
+            <CodeMirror  minHeight={"100vh"} minWidth={"100vw"} value={valueJava}
                          ref={javaEditorRef}
 
 
@@ -754,10 +846,24 @@ export function JavaProjectUnitedPage() {
         </Box>
     )
 
+    const noFileOpened = (
+        <Box bgcolor="#282c34"  minWidth={"100%"} minHeight={"100%"}  >
+            <Box  minHeight={"85vh"} minWidth={"100vw"}>
+                <Box  padding={2}  minWidth={"100vw"} minHeight={"100vh"} >
+                    <Typography color="#ffffff">Стартовый экран</Typography>
+                </Box>
+            </Box>
+
+
+        </Box>
+    )
+
     // переключатель между типами редакторов
     const editorContent =(
         <div>
-            {isJavaFileRef.current ===true && javaEditorContent} { isJavaFileRef.current===false && slateContent}
+            {isNoFileOpenedRef.current===true && noFileOpened}
+            {(isJavaFileRef.current ===true && isNoFileOpenedRef.current===false) && javaEditorContent}
+            { (isJavaFileRef.current===false && isNoFileOpenedRef.current===false) && slateContent}
 
         </div>
 
@@ -1200,25 +1306,7 @@ export function JavaProjectUnitedPage() {
         }
     }
 
-    const resolveAuthor = async (author_uuid)=>{
-        try {
-            const response = await api.get('/auth/resolveUUID/'+author_uuid);
 
-            if (response.status === 200) {
-
-                console.log(response.data)
-
-                setAuthorUsername(response.data.username);
-
-            }
-            else {
-                console.log(response.status);
-            }
-        } catch (error) {
-            console.log(error);
-
-        }
-    }
 
     const removeParticipant = async (uuid, username)=>{
         console.log(uuid)
@@ -1464,6 +1552,7 @@ export function JavaProjectUnitedPage() {
                 if (extension === "java"){
                     setValueJava(response.data.content);
                     javaValueRef.current = response.data.content;
+
                     isJavaFileRef.current=true
 
                 }
@@ -1471,6 +1560,7 @@ export function JavaProjectUnitedPage() {
 
                     if (isJavaFileRef.current){
                         isJavaFileRef.current=false
+
                         console.log("сценарий переключения с java")
 
                         let slateSample = [
@@ -1533,15 +1623,17 @@ export function JavaProjectUnitedPage() {
 
 
 
-
+                isNoFileOpenedRef.current = false
 
 
             }
             else {
                 console.log(response.status);
+                isNoFileOpenedRef.current = true
             }
         } catch (error) {
             console.log(error);
+            isNoFileOpenedRef.current = true
 
         }
 
@@ -1553,7 +1645,12 @@ export function JavaProjectUnitedPage() {
 
 
     return (
-        <Box sx={{ display: 'flex',
+        <Box sx={{ display: 'flex', bgcolor:"#282c34",
+            outline: '2px solid red'
+
+
+
+
 
 
 
@@ -1562,10 +1659,9 @@ export function JavaProjectUnitedPage() {
         }}>
             <CssBaseline />
             <AppBar component="nav" sx={{
-                backgroundColor: 'rgba(255, 0, 0, 0.5)', // полупрозрачный белый
-                backdropFilter: 'blur(10px)', // размытие фона
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)', // мягкая тень
-                border: '1px solid rgba(255, 255, 255, 0.2)', // тонкая граница
+                backgroundColor: 'primary.main',
+                opacity: 0.85, // Легкая полупрозрачность
+                backdropFilter: 'blur(10px)', // Эффект размытия (опционально)
             }}>
                 <Toolbar variant={"dense"} >
                     <IconButton
@@ -1587,15 +1683,15 @@ export function JavaProjectUnitedPage() {
 
 
 
-                    <Button onClick={loadRecentFiles}>{openedFileName}</Button>
+                    <Button color={"black"} onClick={loadRecentFiles}>{openedFileName}</Button>
 
 
 
 
-                    <IconButton onClick={saveFile} color="primary">
+                    <IconButton onClick={saveFile} color="black">
                         <SaveIcon/>
                     </IconButton>
-                    <IconButton color="primary">
+                    <IconButton color="black">
                         <AutoAwesomeIcon/>
                     </IconButton>
 
@@ -1622,7 +1718,12 @@ export function JavaProjectUnitedPage() {
                     {drawer}
                 </Drawer>
             </nav>
-            <Box component="main" >
+            <Box component="main"
+            sx={{
+                outline: '2px solid red'
+
+            }}
+            >
 
 
 
@@ -1631,7 +1732,7 @@ export function JavaProjectUnitedPage() {
 
 
 
-                <Toolbar variant={"dense"} />
+                <Toolbar  variant={"dense"} />
 
                 {pageRegime === "Editor" &&editorContent}
                 {pageRegime==="Console" && consoleComponent}
@@ -1671,8 +1772,13 @@ export function JavaProjectUnitedPage() {
                     display: 'flex',
                     justifyContent: 'center', // Align buttons to the right
                     gap: 2, // Space between buttons
+
+
+
                 }}>
                 <BottomNavigation
+
+
 
 
                     showLabels
