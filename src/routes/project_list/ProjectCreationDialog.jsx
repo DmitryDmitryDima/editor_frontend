@@ -69,12 +69,16 @@ export default function ProjectCreationDialog(props) {
             projectType: type,
             name: formJson.project_name,
             prompt: formJson.project_prompt,
-            needEntryPoint:formJson.need_entry!==null
+            needEntryPoint:formJson.need_entry!==null,
+            privacyLevel:formJson.opened===undefined?"PRIVATE":"OPEN"
 
         })
 
+
         console.log(body);
+        console.log(formJson.opened)
         console.log(correlationId+' set inside dialog');
+
 
 
         try {
@@ -97,6 +101,7 @@ export default function ProjectCreationDialog(props) {
             props.setMessage(response.status)
             props.changeDialogState("FAIL")
         }
+
 
 
 
@@ -208,7 +213,7 @@ export default function ProjectCreationDialog(props) {
 
 
                             <FormControlLabel control={<Checkbox defaultChecked />} label="Создать точку входа" name="need_entry" />
-
+                            <FormControlLabel control={<Checkbox defaultChecked />} label="Открытый проект" name="opened" />
 
 
 
