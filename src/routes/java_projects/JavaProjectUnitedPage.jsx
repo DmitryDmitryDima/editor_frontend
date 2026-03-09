@@ -1,5 +1,5 @@
 import {useNavigate, useParams} from "react-router-dom";
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
 import {createEditor, Editor, Node, Transforms} from "slate";
 import SourceIcon from '@mui/icons-material/Source';
@@ -10,7 +10,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
-import { MdOutlineFileUpload } from "react-icons/md";
+import {MdOutlineDriveFileRenameOutline, MdOutlineFileUpload} from "react-icons/md";
 import { FaEye } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
 import { MdDriveFileMoveOutline } from "react-icons/md";
@@ -22,7 +22,7 @@ import {
     Button,
     ButtonGroup,
     CssBaseline,
-    Dialog,
+    Dialog, DialogActions, DialogContent, DialogContentText,
     DialogTitle,
     Divider,
     Drawer,
@@ -66,6 +66,10 @@ import {v4 as uuid_gen, v4 as uuid} from "uuid";
 import {Client} from "@stomp/stompjs";
 import {SimpleYesOrNotDialog} from "./SimpleYesOrNotDialog.jsx";
 import {PollingDialogWithTimer} from "./PollingDialogWithTimer.jsx";
+import { VscNewFile } from "react-icons/vsc";
+import {IoMdAdd} from "react-icons/io";
+import {AddEntityDialog} from "./AddEntityDialog.jsx";
+
 
 export function JavaProjectUnitedPage() {
 
@@ -100,6 +104,23 @@ export function JavaProjectUnitedPage() {
 
 
     // диалоги
+
+    const [addEntityDialogOpen, setAddEntityDialogOpen] = React.useState(false);
+    const addEntityDialogOpenRef = useRef(false)
+    const addEntityCorrelationIdRef = useRef(null);
+    const [addEntityProcessMessage, setAddEntityProcessMessage] = useState(null)
+
+    const closeAddEntityDialog = ()=>{
+        setAddEntityDialogOpen(false);
+        addEntityDialogOpenRef.current = false;
+    }
+
+    const openAddEntityDialog = ()=>{
+        setAddEntityDialogOpen(true);
+        addEntityDialogOpenRef.current = true;
+    }
+
+
 
     // унифицируем диалог для yes or not операций. если нужна отдельная сложная реализация с множеством стадий - создаем отдельно
 
@@ -535,18 +556,23 @@ export function JavaProjectUnitedPage() {
                         >
 
                         <ButtonGroup >
-                            <IconButton>
-                                <GoPencil></GoPencil>
+                            <IconButton size={"medium"} onClick={()=>{
+                                addNewEntity()
+                            }}>
+                                <IoMdAdd />
+                            </IconButton>
+                            <IconButton size={"medium"} >
+                                <MdOutlineDriveFileRenameOutline />
 
                             </IconButton>
 
-                            <IconButton onClick={()=>{
+                            <IconButton size={"medium"} onClick={()=>{
                                 removeFromTree();
                             }}>
                                 <FaTrash></FaTrash>
                             </IconButton>
 
-                            <IconButton><MdDriveFileMoveOutline></MdDriveFileMoveOutline></IconButton>
+                            <IconButton size={"medium"}><MdDriveFileMoveOutline></MdDriveFileMoveOutline></IconButton>
                         </ButtonGroup>
                         </Box>
 
@@ -915,6 +941,10 @@ export function JavaProjectUnitedPage() {
 
                     if (update.type==="java_project_participant_add" || update.type==="java_project_participant_remove"){
                         participant_action_processing(update);
+                    }
+
+                    if (update.type==="java_project_removal"){
+                        navigate("/users/"+authUsernameRef.current+"/projects")
                     }
 
 
@@ -1429,6 +1459,15 @@ export function JavaProjectUnitedPage() {
 
     }
 
+
+    const addNewEntity = async ()=>{
+        if (selectedTreeData===null || selectedTreeData.data.id.startsWith("file_")) {
+            console.log("missing selected tree member");
+            return;
+        }
+        openAddEntityDialog()
+    }
+
     const removeFromTree = async()=>{
 
 
@@ -1449,35 +1488,11 @@ export function JavaProjectUnitedPage() {
 
 
         }
-        /*
 
-        let address = "/projects/java/"+project_id+"/actions/removeFile/"+file_id;
-        const correlationId = uuid();
-
-        try {
-            const response = await api.post(address, {headers: {'Content-Type': 'application/json',
-                    "X-Render-ID":renderId,
-                    "X-Correlation-ID": correlationId}});
-            console.log(response);
-            if (response.status === 204) {
-                // todo переход в режим ожидания
-
-
-            }
-            else {
-                // todo ошибка
-
-            }
-        }
-        catch (error) {
-            // todo уведомление об ошибке на сервере
-
-
-        }
-
-         */
 
     }
+    // создание файла или директории
+
 
     const saveFile = async ()=>{
         console.log(openedFileIdRef.current)
@@ -1856,6 +1871,15 @@ export function JavaProjectUnitedPage() {
                 >
 
                 </SimpleYesOrNotDialog>
+
+                <AddEntityDialog
+                    parent={selectedTreeData}
+                api={api}
+                opened={addEntityDialogOpen}
+                close={closeAddEntityDialog}
+                ></AddEntityDialog>
+
+
 
             </Box>
 
