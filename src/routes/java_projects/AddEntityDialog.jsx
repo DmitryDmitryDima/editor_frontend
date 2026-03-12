@@ -12,6 +12,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import {useState} from "react";
 import * as React from "react";
+import {v4 as uuid_gen, v4 as uuid} from "uuid";
 // api, close, parentId, setCorrelationId, dialogMessage
 export function AddEntityDialog(props) {
     const handleClose = () => {
@@ -28,17 +29,55 @@ export function AddEntityDialog(props) {
 
 
 
-    const createDirectory = (e)=>{
+    const createDirectory = async (e)=>{
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
         console.log(formJson);
     }
 
-    const createFile = (e)=>{
+    const createFile = async (e)=>{
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const formJson = Object.fromEntries(formData.entries());
+
+        let correlationId = uuid()
+        props.setCorrelationId(correlationId)
+
+        let address = "/api/projects/java/"+props.projectId+"/actions/addFile"
+
+        let body = JSON.stringify({
+            parentId:props.parent.data.originalId,
+            filename: formJson.file_name,
+            extension: formJson.file_extension
+
+
+        })
+
+        console.log(body)
+
+        try {
+            const response = await api.post(address, body, {headers: {'Content-Type': 'application/json', "X-Render-ID":props.renderId, "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+                setPhase("messages")
+
+            }
+            else {
+                console.log(response)
+                setPhase("messages")
+                props.setMessage("error")
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            setPhase("messages")
+            props.setMessage("error")
+
+        }
+
         console.log(formJson);
     }
 
@@ -71,6 +110,12 @@ export function AddEntityDialog(props) {
             </IconButton>
 
             <DialogContent>
+
+                {phase==="messages" && <div>
+                    <DialogContentText>
+                        {props.message}
+                    </DialogContentText>
+                </div>}
                 {phase==="choice" && <div>
                     <DialogContentText>
                         Что хотите создать?

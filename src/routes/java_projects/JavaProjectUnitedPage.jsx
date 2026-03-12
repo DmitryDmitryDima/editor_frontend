@@ -108,17 +108,23 @@ export function JavaProjectUnitedPage() {
     const [addEntityDialogOpen, setAddEntityDialogOpen] = React.useState(false);
     const addEntityDialogOpenRef = useRef(false)
     const addEntityCorrelationIdRef = useRef(null);
-    const [addEntityProcessMessage, setAddEntityProcessMessage] = useState(null)
+    const [addEntityProcessMessage, setAddEntityProcessMessage] = useState("Запускаем процесс создания")
 
     const closeAddEntityDialog = ()=>{
         setAddEntityDialogOpen(false);
         addEntityDialogOpenRef.current = false;
+        addEntityCorrelationIdRef.current = null;
+        setAddEntityProcessMessage("Запускаем процесс создания")
     }
 
     const openAddEntityDialog = ()=>{
         setAddEntityDialogOpen(true);
         addEntityDialogOpenRef.current = true;
     }
+
+    const addEntityDialogChangeCorrelationId = (corrId)=>{
+        addEntityCorrelationIdRef.current = corrId;
+    };
 
 
 
@@ -469,7 +475,7 @@ export function JavaProjectUnitedPage() {
                       openByDefault={false}
                       ref={treeRef}
                       width={300}
-                      height={200}
+                      height={400}
                       indent={24}
                       rowHeight={25}
                       overscanCount={1}
@@ -943,6 +949,10 @@ export function JavaProjectUnitedPage() {
                         participant_action_processing(update);
                     }
 
+                    if (update.type === "java_project_file_add"){
+                        file_add_processing(update)
+                    }
+
                     if (update.type==="java_project_removal"){
                         navigate("/users/"+authUsernameRef.current+"/projects")
                     }
@@ -1019,6 +1029,27 @@ export function JavaProjectUnitedPage() {
         }
         loadStructure()
 
+    }, [])
+
+    const file_add_processing = useCallback((event)=>{
+        let requestCorrelationId = event.context.correlationId;
+        let requestRenderId = event.context.renderId;
+        console.log(addEntityCorrelationIdRef.current)
+
+        console.log(requestCorrelationId)
+
+        console.log(renderId)
+        console.log(requestRenderId)
+
+        if (addEntityDialogOpenRef.current === true && renderId === requestRenderId && addEntityCorrelationIdRef.current===requestCorrelationId) {
+            setAddEntityProcessMessage(event.message);
+
+        }
+        if (event.status === "SUCCESS"){
+            setAddEntityProcessMessage("Сущность добавлена")
+            console.log("успешное добавление")
+            loadStructure()
+        }
     }, [])
 
 
@@ -1872,12 +1903,26 @@ export function JavaProjectUnitedPage() {
 
                 </SimpleYesOrNotDialog>
 
-                <AddEntityDialog
-                    parent={selectedTreeData}
+
+
+
+
+
+                <AddEntityDialog parent={selectedTreeData}
+
+                                 projectId={project_id}
+                                 renderId={renderId}
                 api={api}
                 opened={addEntityDialogOpen}
                 close={closeAddEntityDialog}
+                                 message={addEntityProcessMessage}
+                                 setMessage={setAddEntityProcessMessage}
+                                 setCorrelationId={addEntityDialogChangeCorrelationId}
                 ></AddEntityDialog>
+
+
+
+
 
 
 
