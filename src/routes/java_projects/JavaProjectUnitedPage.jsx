@@ -952,6 +952,9 @@ export function JavaProjectUnitedPage() {
                     if (update.type === "java_project_file_add"){
                         file_add_processing(update)
                     }
+                    if (update.type === "java_project_directory_add"){
+                        directory_add_processing(update)
+                    }
 
                     if (update.type==="java_project_removal"){
                         navigate("/users/"+authUsernameRef.current+"/projects")
@@ -1029,6 +1032,20 @@ export function JavaProjectUnitedPage() {
         }
         loadStructure()
 
+    }, [])
+
+    const directory_add_processing = useCallback((event)=>{
+        let requestCorrelationId = event.context.correlationId;
+        let requestRenderId = event.context.renderId;
+        if (addEntityDialogOpenRef.current === true && renderId === requestRenderId && addEntityCorrelationIdRef.current===requestCorrelationId) {
+            setAddEntityProcessMessage(event.message);
+
+        }
+        if (event.status === "SUCCESS"){
+            setAddEntityProcessMessage("Сущность добавлена")
+            console.log("успешное добавление")
+            loadStructure()
+        }
     }, [])
 
     const file_add_processing = useCallback((event)=>{
@@ -1428,7 +1445,7 @@ export function JavaProjectUnitedPage() {
             return;
         }
 
-        let address = "/api/projects/java/"+project_id+"/actions/autosave/"+openedFileIdRef.current;
+        let address = "/api/projects/java/"+project_id+"/actions/autosave";
         let content;
         if (isJavaFileRef.current){
             content = javaValueRef.current
@@ -1442,7 +1459,8 @@ export function JavaProjectUnitedPage() {
         const correlationId = uuid();
 
         let body = JSON.stringify({
-            content: content
+            content: content,
+            fileId: openedFileIdRef.current
         })
 
         api.post(address, body, {headers: {'Content-Type': 'application/json',
@@ -1455,13 +1473,17 @@ export function JavaProjectUnitedPage() {
 
     const removeFile = async ()=>{
         let file_id = selectedTreeData.data.originalId
-        let address = "/api/projects/java/"+project_id+"/actions/removeFile/"+file_id;
+        let address = "/api/projects/java/"+project_id+"/actions/removeFile"
+
+        let body = JSON.stringify({
+            fileId:file_id
+        })
         const correlationId = uuid();
         console.log(correlationId, "generated")
         simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
 
         try {
-            const response = await api.post(address,null, {headers: {'Content-Type': 'application/json',
+            const response = await api.post(address,body, {headers: {'Content-Type': 'application/json',
                     "X-Render-ID":renderId,
                     "X-Correlation-ID": correlationId}});
             console.log(response);
@@ -1530,7 +1552,7 @@ export function JavaProjectUnitedPage() {
         if (openedFileIdRef.current==null){
             return;
         }
-        let address = "/api/projects/java/"+project_id+"/actions/saveFile/"+openedFileIdRef.current;
+        let address = "/api/projects/java/"+project_id+"/actions/saveFile";
 
         let content;
         if (isJavaFileRef.current){
@@ -1552,7 +1574,9 @@ export function JavaProjectUnitedPage() {
         const correlationId = uuid();
 
         let body = JSON.stringify({
-            content: content
+            content: content,
+            fileId:openedFileIdRef.current
+
         })
 
         console.log(body)
