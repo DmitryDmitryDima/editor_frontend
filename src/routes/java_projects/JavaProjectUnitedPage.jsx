@@ -1,7 +1,7 @@
 import {useNavigate, useParams} from "react-router-dom";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Editable, Slate, withReact} from "slate-react";
-import {createEditor, Editor, Node, Transforms} from "slate";
+import {createEditor, Editor, Node, parent, Transforms} from "slate";
 import SourceIcon from '@mui/icons-material/Source';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
@@ -380,6 +380,18 @@ export function JavaProjectUnitedPage() {
         </Box>
     )
 
+    const onTreeMove = ({ dragIds, parentId, index, dragNodes, parentNode }) => {
+
+        console.log(dragNodes, parentNode)
+        console.log(treeData)
+
+        if (dragIds.length===1){
+            openSimpleYesOrNotDialog("переместить "+dragNodes[0].data.name+" в "+parentNode.data.name+" ?", "Перемещение", ()=>{
+                console.log("Перемещаем")
+            });
+        }
+    };
+
     // drawer component
     const drawer = (
         // todo аккуратнее с sx на родительском box
@@ -471,6 +483,8 @@ export function JavaProjectUnitedPage() {
                         <Typography fontWeight="bold">Структура</Typography>
                     </Box>
                 <Tree data={treeData}
+
+                      onMove={onTreeMove}
 
                       openByDefault={false}
                       ref={treeRef}
@@ -578,7 +592,7 @@ export function JavaProjectUnitedPage() {
                                 <FaTrash></FaTrash>
                             </IconButton>
 
-                            <IconButton size={"medium"}><MdDriveFileMoveOutline></MdDriveFileMoveOutline></IconButton>
+
                         </ButtonGroup>
                         </Box>
 
@@ -976,6 +990,10 @@ export function JavaProjectUnitedPage() {
                         file_removal_processing(update)
                     }
 
+                    if (update.type === "java_project_directory_removal"){
+                        directory_removal_processing(update)
+                    }
+
 
 
                     //console.log(update);
@@ -1070,6 +1088,92 @@ export function JavaProjectUnitedPage() {
     }, [])
 
 
+
+    const directory_removal_processing = useCallback((event)=>{
+        console.log(event)
+        let correlationId = event.context.correlationId;
+        if (event.status==="SUCCESS"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody("Директория успешно удалена")
+                setSimpleYesOrNotDialogPhase("SUCCESS")
+                simpleYesOrNotDialogPhaseRef.current = "SUCCESS"
+
+
+
+            }
+
+            loadStructure()
+
+        }
+
+        if (event.status==="PROCESSING"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message);
+
+
+
+
+            }
+
+
+
+        }
+
+
+
+        if (event.status==="POLLING"){
+            let data = JSON.parse(event.data);
+
+
+            // todo тут нужен механизм принадлежности к контексту
+            if(event.context.username!==authUsernameRef.current){
+                console.log(event.context.username+" polling initiator username");
+                console.log(authUsernameRef.current+" auth username")
+                pollingAnswer(JSON.stringify({
+                    decision:false, // false означает, что необходимо время на принятие решения
+                    content: "No"
+                }), correlationId)
+
+                openPollingDialogWithTimer("Уведомление от пользователя", event.context.username+" собирается удалить просматриваемый вами директорию. Удаляем?",
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // false означает, что необходимо время на принятие решения
+                            content: "Yes"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    },
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // true - ответ однозначен
+                            content: "No"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    }
+
+                )
+            }
+        }
+
+        if (event.status==="ERROR"){
+
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message)
+                setSimpleYesOrNotDialogPhase("FAIL")
+                simpleYesOrNotDialogPhaseRef.current = "FAIL"
+
+
+
+            }
+
+
+        }
+    }, [])
+
+
     const file_removal_processing = useCallback((event)=>{
         console.log(event)
         let correlationId = event.context.correlationId;
@@ -1086,6 +1190,21 @@ export function JavaProjectUnitedPage() {
             }
 
             loadStructure()
+
+        }
+
+        if (event.status==="PROCESSING"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message);
+
+
+
+
+            }
+
+
 
         }
 
@@ -1470,6 +1589,47 @@ export function JavaProjectUnitedPage() {
 
     }
 
+    const removeDirectory = async ()=>{
+        let directory_id = selectedTreeData.data.originalId
+        let address = "/api/projects/java/"+project_id+"/actions/removeDirectory"
+
+        let body = JSON.stringify({
+            directoryId:directory_id
+        })
+        const correlationId = uuid();
+        console.log(correlationId, "generated")
+        simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
+
+        try {
+            const response = await api.post(address,body, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+                setSimpleYesOrNotDialogPhase("WAITING")
+                setSimpleYesOrNotDialogBody("Согласуем удаление...")
+
+
+            }
+            else {
+                // todo ошибка
+
+                setSimpleYesOrNotDialogPhase("FAIL")
+                setSimpleYesOrNotDialogBody("ошибка удаления "+response.data.message)
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            console.log(error, "ошибка!!!")
+            setSimpleYesOrNotDialogPhase("FAIL")
+            setSimpleYesOrNotDialogBody(error.response.data.message)
+
+        }
+
+    }
+
 
     const removeFile = async ()=>{
         let file_id = selectedTreeData.data.originalId
@@ -1540,6 +1700,12 @@ export function JavaProjectUnitedPage() {
 
 
 
+        }
+
+        if (selectedTreeData.data.id.startsWith("directory_")){
+            openSimpleYesOrNotDialog("Удаление "+selectedTreeData.data.name, "Вы собираетесь удалить данную директорию", ()=>{
+                removeDirectory()
+            })
         }
 
 
