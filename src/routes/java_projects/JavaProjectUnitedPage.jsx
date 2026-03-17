@@ -385,10 +385,17 @@ export function JavaProjectUnitedPage() {
         console.log(dragNodes, parentNode)
         console.log(treeData)
 
+
+
         if (dragIds.length===1){
-            openSimpleYesOrNotDialog("переместить "+dragNodes[0].data.name+" в "+parentNode.data.name+" ?", "Перемещение", ()=>{
-                console.log("Перемещаем")
-            });
+            if (dragNodes[0].data.id.startsWith("file_") && parentNode.data.id.startsWith("directory_")){
+                openSimpleYesOrNotDialog("переместить файл "+dragNodes[0].data.name+" в "+parentNode.data.name+" ?", "Перемещение", ()=>{
+                    moveFile(dragNodes[0].data.originalId, parentNode.data.originalId)
+                });
+            }
+
+
+
         }
     };
 
@@ -979,6 +986,10 @@ export function JavaProjectUnitedPage() {
                         file_save_processing(update)
                     }
 
+                    if (update.type === "java_project_file_move"){
+                        file_move_processing(update)
+                    }
+
 
                     // уведомление
                     if (update.type==="java_project_file_save_system"){
@@ -1085,6 +1096,93 @@ export function JavaProjectUnitedPage() {
             console.log("успешное добавление")
             loadStructure()
         }
+    }, [])
+
+
+
+    const file_move_processing = useCallback((event)=>{
+
+        console.log(event)
+        let correlationId = event.context.correlationId;
+        if (event.status==="SUCCESS"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody("Файл успешно перемещен")
+                setSimpleYesOrNotDialogPhase("SUCCESS")
+                simpleYesOrNotDialogPhaseRef.current = "SUCCESS"
+
+
+
+            }
+
+            loadStructure()
+
+        }
+
+        if (event.status==="PROCESSING"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message);
+
+
+
+
+            }
+
+
+
+        }
+
+        if (event.status==="POLLING"){
+            let data = JSON.parse(event.data);
+
+
+            // todo тут нужен механизм принадлежности к контексту
+            if(event.context.username!==authUsernameRef.current && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
+                console.log(event.context.username+" polling initiator username");
+                console.log(authUsernameRef.current+" auth username")
+                pollingAnswer(JSON.stringify({
+                    decision:false, // false означает, что необходимо время на принятие решения
+                    content: "No"
+                }), correlationId)
+
+                openPollingDialogWithTimer("Уведомление от пользователя", event.context.username+" собирается переместить файл, который вы смотрите. Перемещаем?",
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // false означает, что необходимо время на принятие решения
+                            content: "Yes"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    },
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // true - ответ однозначен
+                            content: "No"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    }
+
+                )
+            }
+        }
+
+        if (event.status==="ERROR"){
+
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message)
+                setSimpleYesOrNotDialogPhase("FAIL")
+                simpleYesOrNotDialogPhaseRef.current = "FAIL"
+
+
+
+            }
+
+
+        }
+
+
     }, [])
 
 
@@ -1627,6 +1725,51 @@ export function JavaProjectUnitedPage() {
             setSimpleYesOrNotDialogBody(error.response.data.message)
 
         }
+
+    }
+
+    const moveFile = async (file_id, directory_id)=>{
+        console.log(file_id, directory_id);
+
+        let address = "/api/projects/java/"+project_id+"/actions/moveFile"
+
+        let body = JSON.stringify({
+            fileId:file_id,
+            parentId:directory_id
+        })
+
+        const correlationId = uuid();
+        console.log(correlationId, "generated")
+        simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
+
+        try {
+            const response = await api.post(address,body, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+                setSimpleYesOrNotDialogPhase("WAITING")
+                setSimpleYesOrNotDialogBody("Согласуем перемещение...")
+
+
+            }
+            else {
+                // todo ошибка
+
+                setSimpleYesOrNotDialogPhase("FAIL")
+                setSimpleYesOrNotDialogBody("ошибка перемещения "+response.data.message)
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            console.log(error, "ошибка!!!")
+            setSimpleYesOrNotDialogPhase("FAIL")
+            setSimpleYesOrNotDialogBody(error.response.data.message)
+
+        }
+
 
     }
 
