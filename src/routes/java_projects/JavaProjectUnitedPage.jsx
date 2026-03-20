@@ -394,6 +394,12 @@ export function JavaProjectUnitedPage() {
                 });
             }
 
+            if (dragNodes[0].data.id.startsWith("directory_") && parentNode.data.id.startsWith("directory_")){
+                openSimpleYesOrNotDialog("переместить директорию "+dragNodes[0].data.name+" в "+parentNode.data.name+" ?", "Перемещение", ()=>{
+                    moveDirectory(dragNodes[0].data.originalId, parentNode.data.originalId)
+                });
+            }
+
 
 
         }
@@ -990,6 +996,12 @@ export function JavaProjectUnitedPage() {
                         file_move_processing(update)
                     }
 
+                    if (update.type === "java_project_directory_move"){
+                        directory_move_processing(update)
+                    }
+
+
+
 
                     // уведомление
                     if (update.type==="java_project_file_save_system"){
@@ -1096,6 +1108,92 @@ export function JavaProjectUnitedPage() {
             console.log("успешное добавление")
             loadStructure()
         }
+    }, [])
+
+
+    const directory_move_processing = useCallback((event)=>{
+
+        console.log(event)
+        let correlationId = event.context.correlationId;
+        if (event.status==="SUCCESS"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody("Директория успешно перемещена")
+                setSimpleYesOrNotDialogPhase("SUCCESS")
+                simpleYesOrNotDialogPhaseRef.current = "SUCCESS"
+
+
+
+            }
+
+            loadStructure()
+
+        }
+
+        if (event.status==="PROCESSING"){
+
+            console.log(correlationId,simpleYesOrNotDialogCorrelationIdRef.current, simpleYesOrNotDialogOpenRef.current );
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message);
+
+
+
+
+            }
+
+
+
+        }
+
+        if (event.status==="POLLING"){
+            let data = JSON.parse(event.data);
+
+
+            // todo тут нужен механизм принадлежности к контексту
+            if(event.context.username!==authUsernameRef.current && Number(data.triggerInfo.fileId)===openedFileIdRef.current){
+                console.log(event.context.username+" polling initiator username");
+                console.log(authUsernameRef.current+" auth username")
+                pollingAnswer(JSON.stringify({
+                    decision:false, // false означает, что необходимо время на принятие решения
+                    content: "No"
+                }), correlationId)
+
+                openPollingDialogWithTimer("Уведомление от пользователя", event.context.username+" собирается переместить директорию, который вы смотрите. Перемещаем?",
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // false означает, что необходимо время на принятие решения
+                            content: "Yes"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    },
+                    ()=>{
+                        pollingAnswer(JSON.stringify({
+                            decision:true, // true - ответ однозначен
+                            content: "No"
+                        }), correlationId)
+                        closePollingDialogWithTimer()
+                    }
+
+                )
+            }
+        }
+
+        if (event.status==="ERROR"){
+
+            if (correlationId===simpleYesOrNotDialogCorrelationIdRef.current && simpleYesOrNotDialogOpenRef.current){
+                setSimpleYesOrNotDialogBody(event.message)
+                setSimpleYesOrNotDialogPhase("FAIL")
+                simpleYesOrNotDialogPhaseRef.current = "FAIL"
+
+
+
+            }
+
+
+        }
+
+
     }, [])
 
 
@@ -1725,6 +1823,51 @@ export function JavaProjectUnitedPage() {
             setSimpleYesOrNotDialogBody(error.response.data.message)
 
         }
+
+    }
+
+    const moveDirectory = async (child_id, parent_id)=>{
+        let address = "/api/projects/java/"+project_id+"/actions/moveDirectory"
+
+        let body = JSON.stringify({
+            directoryId:child_id,
+            parentId:parent_id
+        })
+
+        const correlationId = uuid();
+        console.log(correlationId, "generated")
+        simpleYesOrNotDialogCorrelationIdRef.current = correlationId;
+
+        try {
+            const response = await api.post(address,body, {headers: {'Content-Type': 'application/json',
+                    "X-Render-ID":renderId,
+                    "X-Correlation-ID": correlationId}});
+            console.log(response);
+            if (response.status === 204) {
+                // todo переход в режим ожидания
+                setSimpleYesOrNotDialogPhase("WAITING")
+                setSimpleYesOrNotDialogBody("Согласуем перемещение...")
+
+
+            }
+            else {
+                // todo ошибка
+
+                setSimpleYesOrNotDialogPhase("FAIL")
+                setSimpleYesOrNotDialogBody("ошибка перемещения "+response.data.message)
+
+            }
+        }
+        catch (error) {
+            // todo уведомление об ошибке на сервере
+            console.log(error, "ошибка!!!")
+            setSimpleYesOrNotDialogPhase("FAIL")
+            setSimpleYesOrNotDialogBody(error.response.data.message)
+
+        }
+
+
+
 
     }
 
