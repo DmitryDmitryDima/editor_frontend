@@ -962,7 +962,7 @@ export function JavaProjectUnitedPage() {
 
                     const update = JSON.parse(message.body);
 
-                    console.log(update+" received");
+                    console.log(update.type+" received");
 
                     if (update.type==="project_sub" || update.type==="project_unsub"){
 
@@ -990,6 +990,9 @@ export function JavaProjectUnitedPage() {
 
                     if (update.type==="java_project_file_save") {
                         file_save_processing(update)
+                    }
+                    if (update.type === "java_project_file_save_batched"){
+                        batched_file_save_processing(update)
                     }
 
                     if (update.type === "java_project_file_move"){
@@ -1453,7 +1456,21 @@ export function JavaProjectUnitedPage() {
     }, [])
 
 
+    const batched_file_save_processing = useCallback((event)=>{
+        console.log(event.data)
+        let data = JSON.parse(event.data);
+        console.log("parsed", data);
+        console.log(new Map(Object.entries(data.contentMap)));
+        console.log(openedFileIdRef.current)
 
+        let content = new Map(Object.entries(data.contentMap)).get(String(openedFileIdRef.current));
+        if (content!==undefined) {
+            javaValueRef.current = content;
+            setValueJava(content);
+
+            javaEditorCursorRef.current = javaEditorRef.current.view.state.selection.ranges[0].from;
+        }
+    })
 
     const file_save_processing = useCallback((event) => {
         // если ивент приходит с другого рендера и совпадает с текущим открытым файлом, мы должны обновить содержимое редактора
@@ -1463,6 +1480,8 @@ export function JavaProjectUnitedPage() {
         console.log(event.data)
         let data = JSON.parse(event.data);
         console.log("parsed", data);
+
+
 
 
         /*
