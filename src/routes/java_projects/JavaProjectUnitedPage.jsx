@@ -6,6 +6,7 @@ import SourceIcon from '@mui/icons-material/Source';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import SaveIcon from '@mui/icons-material/Save';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -69,6 +70,7 @@ import {PollingDialogWithTimer} from "./PollingDialogWithTimer.jsx";
 import { VscNewFile } from "react-icons/vsc";
 import {IoMdAdd} from "react-icons/io";
 import {AddEntityDialog} from "./AddEntityDialog.jsx";
+import basicSuggestion from "./completions/basicSuggestion.js";
 
 
 export function JavaProjectUnitedPage() {
@@ -834,6 +836,19 @@ export function JavaProjectUnitedPage() {
         },
     });
 
+
+
+
+
+    // suggestions
+
+    // организация доступа к данным главного компонента для basic completions
+    const basicSuggestionCallback = useCallback(
+        (context) => basicSuggestion(context),
+        []
+    );
+
+
     // блок контента code mirror
     const javaEditorContent = (
         <Box  minWidth={"100%"} minHeight={"100%"} >
@@ -846,6 +861,10 @@ export function JavaProjectUnitedPage() {
 
 
                          extensions={[
+
+
+
+
                              EditorView.updateListener.of((v) => {
                                  if (v.docChanged) {
                                      // The document has changed
@@ -864,6 +883,10 @@ export function JavaProjectUnitedPage() {
 
                                  }
                              }),
+
+
+
+
                              customTheme,
                              java(),
                              EditorView.lineWrapping,
@@ -879,10 +902,17 @@ export function JavaProjectUnitedPage() {
                              indentOnInput(),
                              bracketMatching(),
                              closeBrackets(),
-                             autocompletion(),
                              rectangularSelection(),
                              highlightActiveLine(),
                              highlightSelectionMatches(),
+                             autocompletion({override:[basicSuggestionCallback],
+
+                                 activateOnTyping: true,
+                                 defaultKeymap:true,
+
+
+                             }),
+
                              keymap.of([
                                  ...closeBracketsKeymap,
                                  ...defaultKeymap,
@@ -893,6 +923,11 @@ export function JavaProjectUnitedPage() {
                                  ...lintKeymap,
                                  indentWithTab,
                              ]),
+
+
+
+
+
 
 
 
@@ -1524,6 +1559,9 @@ export function JavaProjectUnitedPage() {
 
             if (event.status==="SUCCESS"){
                 let content = data.content;
+
+
+
                 if (isJavaFileRef.current){
 
 
@@ -1596,7 +1634,7 @@ export function JavaProjectUnitedPage() {
     // при получении polling события нужно отправить activity ивент (decision = false) - так мы гарантируем, что наше мнение учтут
     const pollingAnswer = async(answer, corrId)=>{
         try {
-
+            console.log(answer, "polling answer")
             console.log("loadStructure")
             let way = 'api//projects/java/'+project_id+'/actions/trigger/'+corrId
             await api.post(way, answer, {headers: {'Content-Type': 'application/json',
@@ -2233,7 +2271,7 @@ export function JavaProjectUnitedPage() {
                         <SaveIcon/>
                     </IconButton>
                     <IconButton color="black">
-                        <AutoAwesomeIcon/>
+                        <PlayCircleFilledWhiteIcon/>
                     </IconButton>
 
 

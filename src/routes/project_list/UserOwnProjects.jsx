@@ -141,13 +141,12 @@ export function UserOwnProjects(props) {
             });
 
             client.onConnect = function (frame) {
-                // Do something; all subscriptions must be done in this callback.
-                // This is needed because it runs after a (re)connect.
+
                 client.subscribe("/users/activity/private/"+uuid, (message) => {
 
                     const update = JSON.parse(message.body);
 
-                    if (update.type==="java_project_creation_from_template") {
+                    if (update.type==="java_project_creation_from_system_instruction") {
                         creationEventProcessing(update);
                     }
                     if (update.type==="java_project_removal"){
@@ -319,6 +318,14 @@ export function UserOwnProjects(props) {
                 setCreationDialogMessage(event.message)
                 creationDialogStateRef.current = "FAIL";
                 setCreationDialogState("FAIL");
+            }
+        }
+
+
+        if (status === "PROCESSING"){
+            if (event.context.correlationId===creationDialogCorrelationIdRef.current){
+                setCreationDialogMessage(event.message)
+
             }
         }
         if (status==="SUCCESS"){
