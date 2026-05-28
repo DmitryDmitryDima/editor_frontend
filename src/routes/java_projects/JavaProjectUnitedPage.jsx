@@ -45,7 +45,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import {java} from "@codemirror/lang-java";
 import {defaultKeymap, history, historyKeymap, indentWithTab} from "@codemirror/commands";
 import {bracketMatching, foldGutter, foldKeymap, indentOnInput} from "@codemirror/language";
-import {Compartment, EditorState} from "@codemirror/state";
+import {Compartment, EditorState, Annotation} from "@codemirror/state";
 import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} from "@codemirror/autocomplete";
 import {highlightSelectionMatches, searchKeymap} from "@codemirror/search";
 import {lintKeymap} from "@codemirror/lint";
@@ -291,6 +291,8 @@ export function JavaProjectUnitedPage() {
 
     const javaEditorRef = useRef(null);
     const javaEditorCursorRef = useRef(null);
+
+    const remoteAnnotation = Annotation.define();
 
 
     const treeRef = useRef(null);
@@ -753,12 +755,38 @@ export function JavaProjectUnitedPage() {
 
         console.log("autosave trigger")
 
+
         javaValueRef.current = val;
 
         javaEditorCursorRef.current = javaEditorRef.current.view.state.selection.ranges[0].from;
 
 
-        autosave()
+
+        console.log("where autosave called");
+
+        let isRemote = false;
+        for (let transaction of viewUpdate.transactions){
+
+            console.log(transaction);
+            for (let anno of transaction.annotations){
+
+                console.log(anno.type);
+                if (anno.value === "remote"){
+                    isRemote = true;
+                    console.log("REMOTE UPDATE")
+                }
+            }
+        }
+
+
+        if (!isRemote) {
+            autosave()
+        }
+
+
+
+
+
 
     }, []);
 
@@ -870,15 +898,20 @@ export function JavaProjectUnitedPage() {
                                  if (v.docChanged) {
                                      // The document has changed
                                      const newText = v.state.doc.toString();
-                                     //console.log("Document changed:", newText);
-                                     console.log("listener");
+                                     console.log("Document changed:", newText);
+                                     console.log("inside update listener");
 
+
+                                     // старый функционал
+                                     /*
                                      javaEditorRef.current.view.dispatch({
                                          selection: {
                                              anchor: javaEditorCursorRef.current,
                                              head: javaEditorCursorRef.current,
                                          },
                                      })
+
+                                      */
 
 
 
@@ -1567,16 +1600,60 @@ export function JavaProjectUnitedPage() {
 
 
 
+                    /*
+
                     javaValueRef.current = content;
                     setValueJava(content);
 
                     javaEditorCursorRef.current = javaEditorRef.current.view.state.selection.ranges[0].from;
 
 
+                    console.log("On autosave trigger")
+
+                     */
+
+
+
+
+
+
+
+
+                    // потенциально новый способ
+
+                    let docLength = javaEditorRef.current.view.state.doc.length;
+
+                    console.log(docLength);
+
+
+
+
+                    let currentCursor = javaEditorRef.current.view.state.selection.ranges[0].from
+
+                    javaEditorRef.current.view.dispatch({
+                        changes: [{ from: 0, to: docLength, insert: content }],
+                        annotations:[remoteAnnotation.of("remote")]
+                    });
+
+                    javaEditorRef.current.view.dispatch({
+                        selection: {
+                            anchor: currentCursor,
+                            head: currentCursor,
+                        },
+                    })
+
+
+
+
+
+
+
 
 
 
                 }
+
+
 
                 else {
                     console.log ("update slate after saving event")
