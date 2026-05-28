@@ -844,7 +844,8 @@ export function JavaProjectUnitedPage() {
 
     // организация доступа к данным главного компонента для basic completions
     const basicSuggestionCallback = useCallback(
-        (context) => basicSuggestion(context),
+        (context) => basicSuggestion(context, api, project_id,
+            openedFileIdRef.current),
         []
     );
 
