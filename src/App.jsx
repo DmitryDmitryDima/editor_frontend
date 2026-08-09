@@ -23,6 +23,8 @@ import {Storage} from "./routes/knowledgebase/Storage.jsx";
 import {JavaProject} from "./routes/java_projects/JavaProject.jsx";
 import {JavaProjectUnitedPage} from "./routes/java_projects/JavaProjectUnitedPage.jsx";
 import {ProjectInvitePage} from "./routes/invites/ProjectInvitePage.jsx";
+import {Dashboard} from "@mui/icons-material";
+import {JavaDashboard} from "./routes/java_projects/dashboard/JavaDashboard.jsx";
 
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
                     <Route path="/register" element={<RegistrationPage/>} />
                     <Route path="/login" element={<LoginPage/>}/>
                     <Route path="/test" element={<TestSecuredPage/>}/>
+
+                    <Route path="/java_dashboard" element={<JavaDashboard/>}/>
 
 
                     <Route path="/" element={<MainPage />} />
@@ -50,7 +54,11 @@ function App() {
 
                     <Route path="/workplace/projects/java/:project_id" element={<JavaProjectUnitedPage />} />
 
-                    <Route path="/invite/projects/:project_type/:invite_token" element={<ProjectInvitePage/>}/>
+                    <Route path="/invite/projects/:project_type/:invite_token"
+                           element={<ProjectInvitePage/>}/>
+
+
+
 
 
                     <Route path="/cards/repeat" element={<CardRepeater/>} />
