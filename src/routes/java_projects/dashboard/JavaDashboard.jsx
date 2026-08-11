@@ -89,33 +89,7 @@ export function JavaDashboard() {
 
 
 
-    const fetchIndexes = async () =>{
 
-        try {
-
-
-            const response
-                = await api.get('/api/projects/java/dashboard/indexes');
-
-            if (response.status === 200) {
-
-                setIndexes(JSON.stringify(response.data));
-
-
-
-
-
-
-            }
-            else {
-                console.log(response.status);
-            }
-        } catch (error) {
-            console.log(error);
-
-        }
-
-    }
 
     const fetchAvatars = async () => {
 
@@ -123,11 +97,13 @@ export function JavaDashboard() {
 
 
             const response
-                = await api.get('/api/projects/java/dashboard/avatars');
+                = await api.get('/api/projects/java/dashboard/avatars_and_indexes');
 
             if (response.status === 200) {
 
-                setResultAvatars(JSON.stringify(response.data));
+                setResultAvatars(JSON.stringify(response.data.avatars));
+
+                setIndexes(JSON.stringify(response.data.indexes));
 
 
 
@@ -148,7 +124,7 @@ export function JavaDashboard() {
 
 
         await fetchAvatars()
-        await fetchIndexes();
+
     }
 
 
